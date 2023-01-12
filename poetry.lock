@@ -194,6 +194,17 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "microfs"
+version = "1.4.5"
+description = "A module and utility to work with the simple filesystem on the BBC micro:bit"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+pyserial = ">=3.0.1,<4.0"
+
+[[package]]
 name = "multidict"
 version = "6.0.2"
 description = "multidict implementation"
@@ -245,12 +256,33 @@ testing = ["pytest-benchmark", "pytest"]
 dev = ["tox", "pre-commit"]
 
 [[package]]
+name = "pseudo-microbit"
+version = "1.10"
+description = "API to be used with PyCharm for micro:bit python development"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+microfs = "*"
+pyminifier = "*"
+uflash = "*"
+
+[[package]]
 name = "pyflakes"
 version = "2.5.0"
 description = "passive checker of Python programs"
 category = "dev"
 optional = false
 python-versions = ">=3.6"
+
+[[package]]
+name = "pyminifier"
+version = "2.1"
+description = "Python code minifier, obfuscator, and compressor"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "pyparsing"
@@ -262,6 +294,17 @@ python-versions = ">=3.6.8"
 
 [package.extras]
 diagrams = ["railroad-diagrams", "jinja2"]
+
+[[package]]
+name = "pyserial"
+version = "3.5"
+description = "Python Serial Port Extension"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+cp2110 = ["hidapi"]
 
 [[package]]
 name = "python-lsp-jsonrpc"
@@ -401,6 +444,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "uflash"
+version = "2.0.0"
+description = "A module and utility to flash Python onto the BBC micro:bit."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "ujson"
 version = "5.5.0"
 description = "Ultra fast JSON encoder and decoder for Python"
@@ -478,7 +529,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.0,<3.9"
-content-hash = "f328c469a46d9cb95c79b10c69318f07ccca3f40cc6eb43ef51c87ad2ff1879b"
+content-hash = "1b3137b8293b00c73c3a7e71b271a1144f7139ff72ec4b30a6528c1ffe7c3423"
 
 [metadata.files]
 aiohttp = []
@@ -498,13 +549,17 @@ itsdangerous = []
 jedi = []
 jinja2 = []
 markupsafe = []
+microfs = []
 multidict = []
 numpy = []
 packaging = []
 parso = []
 pluggy = []
+pseudo-microbit = []
 pyflakes = []
+pyminifier = []
 pyparsing = []
+pyserial = []
 python-lsp-jsonrpc = []
 pytoolconfig = []
 replit = []
@@ -514,6 +569,7 @@ rope = []
 toml = []
 tomli = []
 typing-extensions = []
+uflash = []
 ujson = []
 urllib3 = []
 werkzeug = []
