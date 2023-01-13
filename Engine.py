@@ -54,6 +54,56 @@ def _create_canvas(x, y, void):
 
     canvas.append(x_line)
 
+  global distance_from
+  global distances
+
+  distances = []
+  
+
+  corner_one = [0, 0]
+  corner_two = [size[0] - 1, 0]
+  corner_three = [size[0] - 1, size[1] - 1]
+  corner_four = [0, size[1] - 1]
+
+  
+
+  for todo_sprite in sprite:
+
+    gloabal_pos = [
+      todo_sprite.position[0] - camera_pos[0],
+      todo_sprite.position[1] - camera_pos[1]
+    ]
+
+    distance_calculated = (_get_distance_between(corner_one, gloabal_pos) +
+                           _get_distance_between(corner_two, gloabal_pos) +
+                           _get_distance_between(corner_three, gloabal_pos) +
+                           _get_distance_between(corner_four, gloabal_pos)) / 4
+
+
+    distances.append(distance_calculated)
+
+
+  global sprite_priority
+  
+  sorted_list = []
+  sprite_priority = []
+  sprite_debug = []
+
+  while distances != [] :
+
+    min_distance = min(distances)
+    
+    sorted_list.append(min_distance)
+    
+    sprite_priority.append( sprite[distances.index(min_distance)] ) #gets the correct sprite associated to it 's distance
+    sprite_debug.append(sprite[distances.index(min_distance)].name)
+    sprite.remove(sprite[distances.index(min_distance)])
+    distances.remove(min(distances))
+    
+  print(sprite_debug , "debug list ")
+
+  distances = sorted_list
+
 
 def _edit_element(x, y, char, name_canvas):
 
@@ -86,7 +136,9 @@ def _get_canvas(is_string: bool):  #renders the canvas
 
   todo = 0
 
-  for current_sprite in sprite:
+  print(sprite_priority)
+
+  for current_sprite in sprite_priority:
 
     
 
@@ -102,14 +154,17 @@ def _get_canvas(is_string: bool):  #renders the canvas
 
     # check if can reder
 
-    if distances[sprite.index(current_sprite)] > max_distance:
+    print( distances[sprite_priority.index(current_sprite)] , max_distance , current_sprite.name)
+
+    if distances[sprite_priority.index(current_sprite)] > max_distance:
 
       print("can't render")
       #pass
       break
 
     else:
-
+      
+      print([current_pos[0] , current_pos[1] ])
       _edit_element(current_pos[0], current_pos[1], current_sprite.char,
                     render_canvas)
 
@@ -148,7 +203,8 @@ def _get_every_distance_from():
 
   global distance_from
   global distances
-
+  global sprite_priority
+  
   distances = []
   
 
@@ -159,7 +215,7 @@ def _get_every_distance_from():
 
   
 
-  for todo_sprite in sprite:
+  for todo_sprite in sprite_priority:
 
     gloabal_pos = [
       todo_sprite.position[0] - camera_pos[0],
@@ -174,23 +230,27 @@ def _get_every_distance_from():
 
     distances.append(distance_calculated)
 
-  print(distances, "distances")
 
   
+  
   sorted_list = []
-  sprite_priority = []
+  new_sprite_priority = []
 
   while distances != [] :
 
     min_distance = min(distances)
     
     sorted_list.append(min_distance)
-    sprite_priority.append( sprite[distances.index(min_distance)] ) #gets the correct sprite associated to it 's distance
+    
+    new_sprite_priority.append( sprite_priority[distances.index(min_distance)] ) #gets the correct sprite associated to it 's distance
+    
+    sprite_priority.remove(sprite_priority[distances.index(min_distance)])
     distances.remove(min(distances))
     
   
+  sprite_priority = new_sprite_priority
   distances = sorted_list
-  print(sprite_priority)
+  
 
 
 def _send_light_update():
@@ -209,23 +269,6 @@ def _send_light_update():
     y += 1
 
 
-### Init Canvas ###
 
-size = [5, 5]
-_create_canvas(size[0], size[1], 0)
 
-### Init Snake ###
 
-S_ok = Sprite(7, [0, 0], "ok")
-S_Head = Sprite(6, [1, 2], "Head")
-S_Body = Sprite(6, [3, 2], "Body")
-
-#while True:
-
-#if input("b r u h : ") == "d":
-
-#S_Head.position[0] += 1
-
-#print(_get_canvas(True))
-
-print(_get_canvas(True))
