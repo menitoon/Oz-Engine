@@ -88,7 +88,7 @@ def _get_canvas(is_string: bool):  #renders the canvas
 
   todo = 0
 
-  print(sprite_priority)
+
 
   for current_sprite in sprite_priority:
 
@@ -110,8 +110,8 @@ def _get_canvas(is_string: bool):  #renders the canvas
 
     if distances[sprite_priority.index(current_sprite)] > max_distance:
 
-      print("can't render")
-      #pass
+      
+      
       break
 
     else:
@@ -156,6 +156,7 @@ def _get_every_distance_from():
   global distance_from
   global distances
   global sprite_priority
+  global sprite
   
   distances = []
   
@@ -201,7 +202,9 @@ def _get_every_distance_from():
     
   
   sprite_priority = new_sprite_priority
+  sprite = sprite_priority
   distances = sorted_list
+  
   
 
 
@@ -222,9 +225,10 @@ def _send_light_update():
 
 
 
-size = [5 , 5]
-
-_create_canvas(size[0] , size[1] , 0)
 
 
-print(_get_canvas(True))
+
+
+
+
+
