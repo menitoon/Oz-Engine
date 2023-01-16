@@ -29,8 +29,10 @@ class Sprite:
 
     sprite.append(self)
 
-  def get_pos(self):
-    print(self.position)
+  def destroy(self):
+
+    sprite.remove(self)
+    del self
 
   #sprite must start with "S" like this :   S_name_of_sprite
 
@@ -42,9 +44,12 @@ size = [0, 0]
 sprite_priority = []
 
 
-def _create_canvas(x, y, void):
+def _create_canvas(void):
   # allow to define size of canvas
 
+  x = size[0]
+  y = size[1]
+  
   x_line = []
 
   for todo in range(x):
@@ -222,7 +227,6 @@ def _send_light_update():
 
     x = 0
     y += 1
-
 
 
 
