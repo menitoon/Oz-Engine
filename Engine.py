@@ -2,10 +2,12 @@ import math
 
 sprite = []
 sprite_priority = []
+
 sprite_names = []
+sprite_names_dict = {}
 
 distances = []
-distance_from = {}
+
 
 
 def deep_copy(L):
@@ -34,6 +36,7 @@ class Sprite:
     if name not in sprite_names:
     
       sprite_names.append(self.name)
+      sprite_names_dict[self.name] = self
 
     else:
 
@@ -60,6 +63,10 @@ def _create_canvas(void):
 
   x = size[0]
   y = size[1]
+
+  if size == [0 , 0]:
+    
+    print('\033[93m' + "!Canvas size is not defined and will most likely not work.") #warn
   
   x_line = []
 
@@ -242,9 +249,4 @@ def _send_light_update():
 
 
 
-
-
-
-S_t = Sprite("0" , [0, 0], "zero")
-S_r = Sprite("4" , [0, 0], "zero")
 
