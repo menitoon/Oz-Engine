@@ -2,6 +2,8 @@ import math
 
 sprite = []
 sprite_priority = []
+sprite_names = []
+
 distances = []
 distance_from = {}
 
@@ -21,13 +23,22 @@ def deep_copy(L):
 
 class Sprite:
 
-  def __init__(self, char, position, name="null"):
+  def __init__(self, char : str, position : list, name : str , group =None  ):
 
     self.char = char
     self.position = position
     self.name = name
 
     sprite.append(self)
+
+    if name not in sprite_names:
+    
+      sprite_names.append(self.name)
+
+    else:
+
+      raise(ValueError("Sprite name already exists , please choose another name , only unique names are allowed or consider deleting the older one."))
+      
 
   def destroy(self):
 
@@ -234,5 +245,6 @@ def _send_light_update():
 
 
 
-
+S_t = Sprite("0" , [0, 0], "zero")
+S_r = Sprite("4" , [0, 0], "zero")
 
