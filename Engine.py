@@ -1,8 +1,8 @@
 import math
-import time
 
 
-def deep_copy(L):
+def deep_copy(L): #Credit to Lacobus for this function
+    
     if isinstance(L, list):
         ret = []
         for i in L:
@@ -13,6 +13,7 @@ def deep_copy(L):
         raise ValueError("Unexpected type for mydeepcopy function")
 
     return ret
+      
 
 
 class Canvas:
@@ -69,15 +70,15 @@ class Canvas:
             x_line.append(str(VOID))
 
         for subtodo in range(SIZE_X):
-            self.canvas.append(x_line)
+            self.canvas.append(x_line.copy())
 
-    def edit_element(self, x, y, char):
+    def edit_element(self, canvas, x, y, char):
+  
+        (canvas[y])[x] = char
+        
+        
+      
 
-        line = deep_copy(self.canvas[y])
-        line[x] = char
-        self.canvas[y] = line
-
-        return self.canvas
 
     def get_square_distance_to(self, position: list):
 
@@ -95,11 +96,9 @@ class Canvas:
 
 
 
-        render_canvas = deep_copy(
-            self.canvas)  # deep_copy of empty canvas to stack sprite instance on it.
-        self.get_every_distance_from(
-            is_optimized
-        )  # define sprite_priority, which sprite should be rendered first
+        render_canvas = deep_copy(self.canvas)  # deep_copy of empty canvas to stack sprite instance on it.
+      
+        self.get_every_distance_from(is_optimized)  # define sprite_priority, which sprite should be rendered first
 
 
 
@@ -120,9 +119,11 @@ class Canvas:
             RENDER_POS_X = RENDER_POS[0]  # define x_axis of render position
             RENDER_POS_Y = RENDER_POS[1]  # define y_axis of render position
 
-            render_canvas = self.edit_element(RENDER_POS_X, RENDER_POS_Y,
+
+            self.edit_element(render_canvas, RENDER_POS_X, RENDER_POS_Y,
                                               current_sprite.char)  # Update render
 
+          
         if is_string:
 
             line = ""
@@ -140,9 +141,9 @@ class Canvas:
         else:
             return render_canvas
 
-    def get_element(self, x, y):
+    def get_element(self, x, y , canvas):
 
-        line = self.canvas[y]
+        line = canvas[y]
         return line[x]
 
     def get_distance_between(self, pos1, pos2):
@@ -172,6 +173,8 @@ class Canvas:
                 distance_calculated = self.get_square_distance_to(sprite_pos)
                 self.distances.append(distance_calculated)
 
+            
+          
             self.sprite_priority = self.sprite_tree
             sorted_distances = []
             new_sprite_priority = []
@@ -183,14 +186,12 @@ class Canvas:
                 sorted_distances.append(
                     min_distance)  # and appends it to list "sorted_distances"
 
-                new_sprite_priority.append(self.sprite_priority[self.distances.index(
-                    min_distance
-                )]  # gets the correct sprite associated to it 's distance and appends list to "new_sprite_priority"
-                                           )
-                self.sprite_priority.remove(self.sprite_priority[self.distances.index(
-                    min_distance)])  # then remove this sprite from list "sprite_priority"
-                self.distances.remove(min(
-                    self.distances))  # do same for list "distances"
+                new_sprite_priority.append(self.sprite_priority[self.distances.index(min_distance)])  
+                # gets the correct sprite associated to it 's distance and appends list to "new_sprite_priority"
+                                           
+                                           
+                self.sprite_priority.remove(self.sprite_priority[self.distances.index(min_distance)])  # then remove this sprite from list "sprite_priority"
+                self.distances.remove(min(self.distances))  # do same for list "distances"
 
             self.sprite_priority = new_sprite_priority  # set list "sprite_priority" to list "new_sprite_priority"
             self.distances = sorted_distances  # set list "distances" to list "sorted_distances"
@@ -217,7 +218,7 @@ class Canvas:
 
                 self.distances.append(distance_calculated)
 
-            self.sprite_priority = self.sprite_tree
+            self.sprite_priority = self.sprite_tree.copy()
             sorted_distances = []
             new_sprite_priority = []
 
@@ -238,7 +239,7 @@ class Canvas:
                     self.distances))  # do same for list "distances"
 
             self.sprite_priority = new_sprite_priority  # set list "sprite_priority" to list "new_sprite_priority"
-            self.sprite_tree = self.sprite_priority
+            #self.sprite_tree = self.sprite_priority
             self.distances = sorted_distances  # set list "distances" to list "sorted_distances"
 
 
@@ -292,4 +293,9 @@ class Sprite:
 
         self.canvas_object.sprite_tree.remove(self)
         del self
+
+
+
+
+
 
