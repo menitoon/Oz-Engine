@@ -21,7 +21,7 @@ def warn(text: str):
 
 
 class Canvas:
-  __slots__ = "VOID", "SIZE", "SIZE_X", "SIZE_Y", "canvas", "camera_pos", "CORNER_TOP_LEFT", "CORNER_TOP_RIGHT", "CORNER_BOTTOM_RIGHT", "CORNER_BOTTOM_LEFT", "MAX_DISTANCE", "distances", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority"
+  __slots__ = "VOID", "SIZE", "SIZE_X", "SIZE_Y", "canvas", "camera_pos", "CORNER_TOP_LEFT", "CORNER_TOP_RIGHT", "CORNER_BOTTOM_RIGHT", "CORNER_BOTTOM_LEFT", "MAX_DISTANCE", "distances", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority" , "sprite_positions"
 
   def __init__(self, SIZE: list, VOID):
 
@@ -52,6 +52,8 @@ class Canvas:
     self.sprite_names = []
     self.sprite_names_dict = {}
 
+    self.sprite_positions = []
+
     self.create_canvas()
 
   def create_canvas(self):
@@ -67,10 +69,10 @@ class Canvas:
 
     x_line = []
 
-    for todo in range(SIZE_Y):
+    for todo in range(SIZE_X):
       x_line.append(str(VOID))
 
-    for subtodo in range(SIZE_X):
+    for subtodo in range(SIZE_Y):
       self.canvas.append(x_line.copy())
 
   def edit_element(self, canvas, x, y, char):
@@ -198,21 +200,16 @@ class Canvas:
     #self.sprite_tree = self.sprite_priority
     self.distances = sorted_distances  # set list "distances" to list "sorted_distances"
 
-  def get_colliding_objects_at(self, POSITION: list):
+  
+  def get_sprite(self, name):
 
-    sprite_list = []
-
-    for current_sprite in self.sprite_tree:
-
-      if current_sprite.position == POSITION:
-
-        sprite_list.append(current_sprite)
+    return self.sprite_names_dict[name]
 
 
 class Sprite:
   # sprite must start with "s" like this when initiated :   S_name_of_sprite
 
-  __slots__ = "canvas_object", "char", "position", "name", "group", "last_rendering_position"
+  __slots__ = "canvas_object", "char", "position", "name", "group"
 
   def __init__(self,
                canvas_object: object,
@@ -226,12 +223,14 @@ class Sprite:
     self.name = name
     self.canvas_object = canvas_object
 
-    canvas_object.sprite_tree.append(self)
+    
 
     if name not in canvas_object.sprite_names:
-
+      
+      canvas_object.sprite_tree.append(self)
       canvas_object.sprite_names.append(self.name)
       canvas_object.sprite_names_dict[self.name] = self
+      canvas_object.sprite_positions.append(self.position)
 
     else:
       # crash and send the follow error back:
@@ -241,7 +240,12 @@ class Sprite:
 
   def destroy(self):
 
+
+    index = self.canvas_object.sprite_tree.index(self)
+    
+    del self.canvas_object.sprite_positions[index]  
     self.canvas_object.sprite_tree.remove(self)
+    
     del self
 
   def rename(self, new_name: str):
@@ -260,6 +264,35 @@ class Sprite:
         f'The name "{new_name}" is already taken, please specify a valid name.'
       )
 
-  def get_colliding_object():
+  def get_colliding_objects(self):
 
-    pass
+    
+    
+    object_colliding = []
+    
+    sprite_position_copy = self.canvas_object.sprite_positions.copy()
+    sprite_tree_copy = self.canvas_object.sprite_tree.copy()
+
+    SELF_INDEX = sprite_tree_copy.index(self)
+
+    
+    
+    del sprite_tree_copy[SELF_INDEX]
+    del sprite_position_copy[SELF_INDEX]
+    del SELF_INDEX #no longer needed
+    
+    for todo in self.canvas_object.sprite_positions:
+
+      if self.position in sprite_position_copy:
+        
+        #add sprite.name to object_colliding
+        index = sprite_position_copy.index(self.position)
+        object_colliding.append( sprite_tree_copy[index].name )
+        del sprite_tree_copy[index]
+        del sprite_position_copy[index]
+
+      else:
+        break
+        
+    return object_colliding
+
