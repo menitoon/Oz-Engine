@@ -7,9 +7,11 @@ It can be used to make games in terminal and with additional modules in discord 
 
 #### STARTUP
 
- ``` pip install Oz-Engine ```
+ ` pip install Oz-Engine `
  
- ` import OzEngine as oz `
+ ```python
+import OzEngine as oz 
+```
 
 
 # How to use it
