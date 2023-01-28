@@ -146,3 +146,4 @@ and that what the function "create_canvas" creates for you:
 ```
 
 and we should get what we had at first using this function.
+
