@@ -9,7 +9,9 @@ It can be used to make games in terminal and with additional modules in discord 
 
  ``` pip install Oz-Engine ```
  
- ` import OzEngine as oz `
+ ```python 
+ import OzEngine as oz 
+ ```
 
 
 # How to use it
@@ -139,33 +141,21 @@ this board can be represented with an 2D-array:
                        ]
 ```
 
-and that what the function "create_canvas" creates for you:
+and that what the method "clear_canvas" from the "Camera" class makes for you:
 ``` python
- def create_canvas(self):
+   def clear_canvas(self):
+    """
 
-    #self is the canvas in question
-    #so all variable that has "self" belongs to the canvas
-   
-    # allow to define size of canvas
+    returns a clean canvas, setted
+    in to it's empty state
 
-    SIZE = self.SIZE    # "SIZE" is the argument you passed at first
-    SIZE_X = self.SIZE_X # "SIZE_X" is the x-axis of SIZE
-    SIZE_Y = self.SIZE_Y # "SIZE_Y" is the y-axis of SIZE
-    VOID = self.VOID     # and VOID is what the canvas is filled with
+    """
 
-    if SIZE == [0, 0]:   #warning here if "SIZE" is invalid
-      warn("Canvas size is not defined and will most likely not work.")
+    SIZE_X = self.size[0]
+    SIZE_Y = self.size[1]
 
-    x_line = [] #we start by making a list that contain as much as SIZE_X 
-
-    for todo in range(SIZE_X):
-      x_line.append(str(VOID))
-
-    #and then we append the list "x_line" to the canvas
-   
-    for subtodo in range(SIZE_Y):
-      self.canvas.append(x_line.copy())
-
+    return [[self.canvas_owner.VOID for _ in range(SIZE_X)]
+            for _ in range(SIZE_Y)]
 
 ```
 
