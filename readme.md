@@ -7,11 +7,9 @@ It can be used to make games in terminal and with additional modules in discord 
 
 #### STARTUP
 
- ` pip install Oz-Engine `
+ ``` pip install Oz-Engine ```
  
- ```python
-import OzEngine as oz 
-```
+ ` import OzEngine as oz `
 
 
 # How to use it
@@ -20,12 +18,22 @@ import OzEngine as oz
 
 Start by instancing a canvas like so: 
 ```python 
-canvas = Canvas([10, 10] , "#") # The first argument is the size of canvas
-                                # The second argument is what the canvas will be filled with.
+canvas = Canvas("#") 
+# The  argument is given what the canvas will be filled with.
 ```
+and then instancing a camera so that we can render the scene.
+```python
+camera = Camera(canvas , [10 , 10] , [0 , 0] , "camera")
+#First argument is the canvas that it belongs to.
+#Second argument is the size of the camera.
+#Thid argument is the position of the camera.
+#And the last one is the name.
+```
+
+
 Now try rendering it:
 ```python
-print(canvas.get_canvas())
+print(camera.render())
 ```
 You should see a square filled with "#"
 
@@ -41,17 +49,30 @@ sprite = Sprite(canvas , "S" , [3 , 3] , "first_sprite" )
 ```
 feel free to add multiples sprites :) !
 
+# moving functions
+
 If you wanted to move them then simply do that:
 ```python
 
 # add 1 to x-axis:
-sprite.position[0] += 1
+sprite.change_x(1) 
 
 # add -1 y-axis:
-sprite.position[1] -= 1
+sprite.change_y(-1)
 
-# render screen:
-print(canvas.get_canvas())
+#set x-axis
+sprite.set_x(1)
+
+#set y-axis
+sprite.set_y(3)
+
+#set position (x and y)
+sprite.set_position([3 , 5])
+
+#add to x and y axis
+sprite.change_postion(1 , -1)
+#first argument is for "x" and the second for "y"
+
 ```
 
 ## Useful sprite methods
@@ -101,6 +122,9 @@ Please note that you will need to execute this method throught the canvas that i
 
 # How it works
 
+⚠️ NOTE :  before reading this remind yourself that is still work in progress and unfinished this section might be changed in the future.
+
+
 To start simple imagine we have a board that is filled with "0"
 
 ![](grid_zero.png)
@@ -146,4 +170,3 @@ and that what the function "create_canvas" creates for you:
 ```
 
 and we should get what we had at first using this function.
-

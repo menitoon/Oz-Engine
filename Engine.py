@@ -1,117 +1,253 @@
 import math
-
-
-def deep_copy(L):  #Credit to Lacobus for this function
-
-  if isinstance(L, list):
-    ret = []
-    for i in L:
-      ret.append(deep_copy(i))
-  elif isinstance(L, (int, float, type(None), str, bool)):
-    ret = L
-  else:
-    raise ValueError("Unexpected type for mydeepcopy function")
-
-  return ret
+import time
 
 
 def warn(text: str):
-
   print(f"\033[93m!{text} \u001b[0m  ")
 
 
 class Canvas:
-  __slots__ = "VOID", "SIZE", "SIZE_X", "SIZE_Y", "canvas", "camera_pos", "CORNER_TOP_LEFT", "CORNER_TOP_RIGHT", "CORNER_BOTTOM_RIGHT", "CORNER_BOTTOM_LEFT", "MAX_DISTANCE", "distances", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority" , "sprite_positions"
+  """
+  Object that can store sprites in it to be rendered
+  """
 
-  def __init__(self, SIZE: list, VOID):
+  __slots__ = "VOID", "SIZE", "SIZE_X", "SIZE_Y", "canvas", "camera_pos", "CORNER_TOP_LEFT", "CORNER_TOP_RIGHT", "CORNER_BOTTOM_RIGHT", "CORNER_BOTTOM_LEFT", "MAX_DISTANCE", "distance_tree", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority", "sprite_position_dict",
+
+  def __init__(self, VOID):
 
     self.VOID = VOID
-    self.SIZE = SIZE
-    self.SIZE_X = SIZE[0]
-    self.SIZE_Y = SIZE[1]
 
-    self.canvas = []
-    self.camera_pos = [0, 0]
-
-    self.CORNER_TOP_LEFT = (0, 0)
-    self.CORNER_TOP_RIGHT = (self.SIZE_X - 1, 0)
-    self.CORNER_BOTTOM_RIGHT = (self.SIZE_X - 1, self.SIZE_Y - 1)
-    self.CORNER_BOTTOM_LEFT = (0, self.SIZE_Y - 1)
-    self.MAX_DISTANCE = (
-      self.get_distance_between(self.CORNER_TOP_LEFT, self.CORNER_BOTTOM_LEFT)
-      + self.get_distance_between(self.CORNER_TOP_RIGHT,
-                                  self.CORNER_BOTTOM_LEFT) +
-      self.get_distance_between(self.CORNER_BOTTOM_RIGHT,
-                                self.CORNER_BOTTOM_LEFT) +
-      self.get_distance_between(self.CORNER_BOTTOM_LEFT,
-                                self.CORNER_BOTTOM_LEFT)) / 4
-
-    self.distances = []
+    self.distance_tree = []
     self.sprite_tree = []
-    self.sprite_priority = []
+
     self.sprite_names = []
     self.sprite_names_dict = {}
+    self.sprite_position_dict = {}
 
-    self.sprite_positions = []
+    # check size settings
 
-    self.create_canvas()
+  def get_elements(self, position: list, canvas: object):
+    """
+        Returns sprites names at the given pos
+        """
 
-  def create_canvas(self):
-    # allow to define size of canvas
+    object_at = []
 
-    SIZE = self.SIZE
-    SIZE_X = self.SIZE_X
-    SIZE_Y = self.SIZE_Y
-    VOID = self.VOID
+    sprite_list = list(self.sprite_position_dict.copy().keys())
+    position_list = list(self.sprite_position_dict.copy().values())
 
-    if SIZE == [0, 0]:
-      warn("Canvas size is not defined and will most likely not work.")
+    while position in position_list:
 
-    x_line = []
+      INDEX = position_list.index(position)
 
-    for todo in range(SIZE_X):
-      x_line.append(str(VOID))
+      object_at.append(sprite_list.pop(INDEX).name)
+      #deletes the element from "sprite_list" and appends it to "object_at"
+      del position_list[INDEX]
+      #and remove the element from "position_list"
 
-    for subtodo in range(SIZE_Y):
-      self.canvas.append(x_line.copy())
+    return object_at
 
-  def edit_element(self, canvas, x, y, char):
+  def get_sprite(self, name):
+    """
+    returns reference to sprite that owns the given name
+    """
 
-    (canvas[y])[x] = char
+    return self.sprite_names_dict[name]
 
-  def get_square_distance_to(self, position: list):
 
-    # sum of the distance between the 4 corners of the square divided by 4 ( corner_sum / 4 )
+class Sprite:
+  """
+    Object that can be used to fill the canvas
+    """
 
-    return (self.get_distance_between(self.CORNER_TOP_LEFT, position) +
-            self.get_distance_between(self.CORNER_TOP_RIGHT, position) +
-            self.get_distance_between(self.CORNER_BOTTOM_RIGHT, position) +
-            self.get_distance_between(self.CORNER_BOTTOM_LEFT, position)) / 4
+  __slots__ = "canvas_owner", "char", "position", "name", "group", "distance"
 
-  def is_renderable(self, distance):
-    return not (distance > self.MAX_DISTANCE)
+  def __init__(self,
+               canvas_owner: object,
+               char: str,
+               position: list,
+               name: str,
+               group=None):
 
-  def get_canvas(
+    self.char = char
+    self.position = position
+    self.name = name
+    self.canvas_owner = canvas_owner
+
+    if name in canvas_owner.sprite_names:
+      # change name if already taken
+      self.name = name + f"@{str(id(self))}"
+
+    # register name in "canvas_owner" :
+    canvas_owner.sprite_tree.append(self)
+    canvas_owner.sprite_names.append(self.name)
+    canvas_owner.sprite_names_dict[self.name] = self
+    canvas_owner.sprite_position_dict[self] = position
+
+  def destroy(self):
+
+    del self.canvas_owner.sprite_names_dict[self.name]
+    del self.canvas_owner.sprite_position_dict[self]
+    self.canvas_owner.sprite_names.remove(self.name)
+    self.canvas_owner.sprite_tree.remove(self)
+
+    print(self.canvas_owner.sprite_names, "del", self.name)
+    print(self.canvas_owner.sprite_tree, "del")
+
+    del self
+
+  def rename(self, new_name: str):
+    """
+        allows to change the name of a sprite, to "rename" it.
+        """
+
+    del self.canvas_owner.sprite_names_dict[self.name]
+
+    if new_name in self.canvas_owner.sprite_names:
+      # change new_name with object id()
+      new_name = new_name + f"@{str(id(self))}"
+
+    # change name
+
+    INDEX = self.canvas_owner.sprite_names.index(self.name)
+    self.canvas_owner.sprite_names[INDEX] = new_name
+    self.name = new_name
+    self.canvas_owner.sprite_names_dict[new_name] = self
+
+  def get_colliding_objects(self):
+    """
+        Returns a list of colliding objects(by name)
+        """
+
+    object_colliding = []
+
+    sprite_check_list = list(
+      self.canvas_owner.sprite_position_dict.copy().keys())
+    position_check_list = list(
+      self.canvas_owner.sprite_position_dict.copy().values())
+
+    sprite_check_list.remove(self)
+    position_check_list.remove(self.position)
+
+    for todo_sprite in sprite_check_list:
+
+      POSITION_CHECK = self.canvas_owner.sprite_position_dict[
+        todo_sprite]  # gets the position from key
+
+      if self.position in position_check_list:
+
+        object_colliding.append(
+          todo_sprite.name) if POSITION_CHECK == self.position else None
+      else:
+        break
+
+    return object_colliding
+
+
+  
+  
+
+  def update_distance(self):
+    """
+    gets index from "render_sprite_list"
+    and update "render_distance_list" like so :
+
+    self.canvas_owner.render_distance_list[index] =                        self.distance
+
+    """
+
+    # update it
+    self.canvas_owner.sprite_position_dict[self] = self.position
+
+  def change_x(self, value: int):
+    """
+        adds "value" to the y-axis of "position"
+        """
+
+    self.position[0] += value
+    self.update_distance()
+
+  def change_y(self, value: int):
+    """
+        adds "value" to the y-axis of "position"
+        """
+
+    self.position[1] += value
+    self.update_distance()
+
+  def set_x(self, value: int):
+    """
+        sets "value" to the x-axis of "position"
+        """
+
+    self.position[0] = value
+    self.update_distance()
+
+  def set_y(self, value: int):
+    """
+        sets "value" to the y-axis of "position"
+        """
+
+    self.position[1] = value
+    self.update_distance()
+
+  def set_position(self, value: list):
+
+    self.position = value
+    self.update_distance()
+
+  def change_position(self, x_val: int = 0, y_val: int = 0):
+
+    self.position[0] += x_val
+    self.position[1] += y_val
+    self.update_distance()
+
+
+class Camera:
+
+  __slots__ = "canvas_owner", "size", "position", "name", "sprite_render_priority", "sprite_distance_dict"
+
+  def __init__(self, canvas_owner: object, size: list, position: list,
+               name: str):
+    '''canvas that is associated with. '''
+    self.canvas_owner = canvas_owner
+    '''size of the camera '''
+    self.size = size
+    ''' position of the camera '''
+    self.position = position
+    ''' name of the camera'''
+    self.name = name
+    ''' define the order of rending sprties '''
+    self.sprite_render_priority = []
+    ''' dictionnary that contain keys "sprite" for value "distance" '''
+    self.sprite_distance_dict = {}
+
+  def render(
     self,
     is_string: bool = True,
-  ):  # renders the canvas
+  ):
+    """
+        Returns the rendered canvas as a string if "is_string" is true else as a 2D-list
+        """
 
-    render_canvas = deep_copy(
-      self.canvas)  # deep_copy of empty canvas to stack sprite instance on it.
+    self.update_sprite_distance_dict()
+
+    # clear canvas
+    render_canvas = self.clear_canvas()
 
     self.get_every_distance_from()
-    # define sprite_priority, which sprite should be rendered first
 
-    for current_sprite in self.sprite_priority:
+    for current_sprite in self.sprite_render_priority:
+
       current_pos = current_sprite.position  # set position of the sprite we are looking at throught the for loop
 
-      camera_x = self.camera_pos[0]  # define x_axis of camera
-      camera_y = self.camera_pos[1]  # define y_axis of camera
+      camera_x = self.position[0]  # define x_axis of camera
+      camera_y = self.position[1]  # define y_axis of camera
 
-      current_pos_x = current_pos[
-        0]  # define x_axis of the current sprite position we are looking at
-      current_pos_y = current_pos[
-        1]  # define y_axis of the current sprite position we are looking at
+      current_pos_x = current_pos[0]
+      # define x_axis of the current sprite position we are looking at
+      current_pos_y = current_pos[1]
+      # define y_axis of the current sprite position we are looking at
 
       RENDER_POS = [current_pos_x - camera_x, current_pos_y - camera_y
                     ]  # sprite postion - camera_position
@@ -120,7 +256,8 @@ class Canvas:
       RENDER_POS_Y = RENDER_POS[1]  # define y_axis of render position
 
       self.edit_element(render_canvas, RENDER_POS_X, RENDER_POS_Y,
-                        current_sprite.char)  # Update render
+                        current_sprite.char)
+      # Update render
 
     if is_string:
 
@@ -138,161 +275,134 @@ class Canvas:
     else:
       return render_canvas
 
-  def get_element(self, x, y, canvas):
+  def update_sprite_distance_dict(self):
+    """
+        update the distance of every sprite
+        """
 
-    line = canvas[y]
-    return line[x]
+    self.sprite_distance_dict = {}
 
-  def get_distance_between(self, pos1, pos2):
+    for todo_sprite in self.canvas_owner.sprite_tree:
 
-    return math.sqrt((pow((pos2[0] - pos1[0]), 2) + pow(
-      (pos2[1] - pos1[1]), 2)))  # √[(x₂ - x₁)² + (y₂ - y₁)²]
+      sprite_position = [
+        todo_sprite.position[0] - self.position[0],
+        todo_sprite.position[1] - self.position[1]
+      ]
+      self.sprite_distance_dict[todo_sprite] = self.get_square_distance_to(
+        sprite_position)
+
+  def clear_canvas(self):
+    """
+
+        returns a clean canvas, setted
+        in to it's empty state
+
+        """
+
+    SIZE_X = self.size[0]
+    SIZE_Y = self.size[1]
+
+    return [[self.canvas_owner.VOID for _ in range(SIZE_X)]
+            for _ in range(SIZE_Y)]
+
+  def edit_element(self, canvas, x, y, char):
+    """
+        allows to edit an element of a canvas
+        """
+
+    (canvas[y])[x] = char
+
+  def get_square_distance_to(self, position: list):
+    """
+    returns the sum of the distance between the 4 corners of         the square
+    """
+
+    SIZE_X = self.size[0] - 1
+    SIZE_Y = self.size[1] - 1
+
+    corner_top_left = [0, 0]
+    corner_top_right = [SIZE_X, 0]
+    corner_bottom_right = [SIZE_X, SIZE_Y]
+    corner_bottom_left = [0, SIZE_Y]
+
+    return (math.dist(corner_top_left, position) +
+            math.dist(corner_top_right, position) +
+            math.dist(corner_bottom_right, position) +
+            math.dist(corner_bottom_left, position))
 
   def get_every_distance_from(self):
+    """
+        define sprite_priority, which sprite should be rendered first.
+        """
 
-    self.distances = []
+    self.sprite_render_priority = []
 
-    camera_pos = self.camera_pos
-    camera_pos_x = camera_pos[0]
-    camera_pos_y = camera_pos[1]
+    distances = list(self.sprite_distance_dict.copy().values())
+    sprite_list = list(self.sprite_distance_dict.copy().keys())
 
-    # Optimized Run:
-    # for every sprite appends it's distance from square to list "distances"
+    for todo in range(len(self.canvas_owner.sprite_tree)):
 
-    for todo_sprite in self.sprite_tree:
+      min_distance = min(distances)
+      # gets the smallest distance in list "distances"
 
-      sprite_pos = [
-        todo_sprite.position[0] - camera_pos_x,
-        todo_sprite.position[1] - camera_pos_y
-      ]  # sprite_postion - camera_position
+      if not self.is_renderable(min_distance):
+        # if the smallest distance of the sprite(+ camera offset)
+        # is bigger than "MAX_DISTANCE"
 
-      distance_calculated = self.get_square_distance_to(sprite_pos)
-
-      if self.is_renderable(distance_calculated) == False:
-
-        # sprite is Invalid and won't be rendered
         break
 
-      self.distances.append(distance_calculated)
+      index = distances.index(min_distance)
+      self.sprite_render_priority.append(sprite_list[index])
 
-    self.sprite_priority = self.sprite_tree.copy()
-    sorted_distances = []
-    new_sprite_priority = []
+      # gets the correct sprite associated to it 's
+      # distance and appends list to"sprite_priority"
 
-    for todo in range(len(self.distances)):
+      del sprite_list[index]
+      del distances[index]
+      # remove thoses
 
-      min_distance = min(
-        self.distances)  # gets the smallest distance in list "distances"
-      sorted_distances.append(
-        min_distance)  # and appends it to list "sorted_distances"
+  def is_renderable(self, distance):
+    """
+        returns whether a sprite a renderable from the distance given.
+        """
 
-      new_sprite_priority.append(
-        self.sprite_priority[self.distances.index(min_distance)]
-        # gets the correct sprite associated to it 's
-        # distance and appends list to"new_sprite_priority"
-      )
-      self.sprite_priority.remove(self.sprite_priority[self.distances.index(
-        min_distance)])  # then remove this sprite from list "sprite_priority"
-      self.distances.remove(min(
-        self.distances))  # do same for list "distances"
+    MAX_DISTANCE = (self.get_square_distance_to([0, 0]))
 
-    self.sprite_priority = new_sprite_priority  # set list "sprite_priority" to list "new_sprite_priority"
-    #self.sprite_tree = self.sprite_priority
-    self.distances = sorted_distances  # set list "distances" to list "sorted_distances"
+    return not (distance + self.get_square_distance_to(self.position)) > (
+      MAX_DISTANCE + self.get_square_distance_to(self.position))
 
+
+
+
+
+def critic_test(size , amount):
+
+  canvas = Canvas(0)
+  camera = Camera(canvas, [size, size], [0, 0], "camera")
   
-  def get_sprite(self, name):
+  for i in range(amount):
 
-    return self.sprite_names_dict[name]
+    s1 = Sprite(canvas, 1, [i, 0], "s1")
+    s2 = Sprite(canvas, 2, [0, -i], "s2")
 
+  fps = 0
+  start = time.monotonic_ns()
 
-class Sprite:
-  # sprite must start with "s" like this when initiated :   S_name_of_sprite
+  mid_fps = []
 
-  __slots__ = "canvas_object", "char", "position", "name", "group"
+  for i in range(1000):
 
-  def __init__(self,
-               canvas_object: object,
-               char: str,
-               position: list,
-               name: str,
-               group=None):
+    if ((time.monotonic_ns() - start) / 100000000) > 1.0:
 
-    self.char = char
-    self.position = position
-    self.name = name
-    self.canvas_object = canvas_object
+      start = time.monotonic_ns()
+      mid_fps.append(fps)
 
-    
+      fps = 0
 
-    if name not in canvas_object.sprite_names:
-      
-      canvas_object.sprite_tree.append(self)
-      canvas_object.sprite_names.append(self.name)
-      canvas_object.sprite_names_dict[self.name] = self
-      canvas_object.sprite_positions.append(self.position)
+    s1.get_colliding_objects()
+    camera.render()
+    fps += 1
 
-    else:
-      # crash and send the follow error back:
-      raise (ValueError(
-        "Sprite name already exists , please choose another name , only unique names are allowed or consider deleting the older one."
-      ))
-
-  def destroy(self):
-
-
-    index = self.canvas_object.sprite_tree.index(self)
-    
-    del self.canvas_object.sprite_positions[index]  
-    self.canvas_object.sprite_tree.remove(self)
-    
-    del self
-
-  def rename(self, new_name: str):
-
-    if not new_name in self.canvas_object.sprite_names:
-
-      del self.canvas_object.sprite_names_dict[self.name]
-      self.canvas_object.sprite_names.remove(self.name)
-
-      self.name = new_name
-      self.canvas_object.sprite_names_dict[new_name] = self
-      self.canvas_object.sprite_names.append(new_name)
-
-    else:
-      warn(
-        f'The name "{new_name}" is already taken, please specify a valid name.'
-      )
-
-  def get_colliding_objects(self):
-
-    
-    
-    object_colliding = []
-    
-    sprite_position_copy = self.canvas_object.sprite_positions.copy()
-    sprite_tree_copy = self.canvas_object.sprite_tree.copy()
-
-    SELF_INDEX = sprite_tree_copy.index(self)
-
-    
-    
-    del sprite_tree_copy[SELF_INDEX]
-    del sprite_position_copy[SELF_INDEX]
-    del SELF_INDEX #no longer needed
-    
-    for todo in self.canvas_object.sprite_positions:
-
-      if self.position in sprite_position_copy:
-        
-        #add sprite.name to object_colliding
-        index = sprite_position_copy.index(self.position)
-        object_colliding.append( sprite_tree_copy[index].name )
-        del sprite_tree_copy[index]
-        del sprite_position_copy[index]
-
-      else:
-        break
-        
-    return object_colliding
+  mid_fps = sum(mid_fps) / len(mid_fps)
+  print(f"{mid_fps} FPS")
 
