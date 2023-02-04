@@ -2,19 +2,19 @@ import math
 import time
 
 
+
 def warn(text: str):
   print(f"\033[93m!{text} \u001b[0m  ")
 
 
 class Canvas:
   """
-  Object that can store sprites in it to be rendered
-  """
+    Object that can store sprites in it to be rendered
+    """
 
-  __slots__ = "VOID", "SIZE", "SIZE_X", "SIZE_Y", "canvas", "camera_pos", "CORNER_TOP_LEFT", "CORNER_TOP_RIGHT", "CORNER_BOTTOM_RIGHT", "CORNER_BOTTOM_LEFT", "MAX_DISTANCE", "distance_tree", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority", "sprite_position_dict",
+  __slots__ = "VOID", "distance_tree", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority", "sprite_position_dict",
 
   def __init__(self, VOID):
-
     self.VOID = VOID
 
     self.distance_tree = []
@@ -23,8 +23,6 @@ class Canvas:
     self.sprite_names = []
     self.sprite_names_dict = {}
     self.sprite_position_dict = {}
-
-    # check size settings
 
   def get_elements(self, position: list, canvas: object):
     """
@@ -37,20 +35,19 @@ class Canvas:
     position_list = list(self.sprite_position_dict.copy().values())
 
     while position in position_list:
-
       INDEX = position_list.index(position)
 
       object_at.append(sprite_list.pop(INDEX).name)
-      #deletes the element from "sprite_list" and appends it to "object_at"
+      # deletes the element from "sprite_list" and appends it to "object_at"
       del position_list[INDEX]
-      #and remove the element from "position_list"
+      # and remove the element from "position_list"
 
     return object_at
 
   def get_sprite(self, name):
     """
-    returns reference to sprite that owns the given name
-    """
+        returns reference to sprite that owns the given name
+        """
 
     return self.sprite_names_dict[name]
 
@@ -60,13 +57,14 @@ class Sprite:
     Object that can be used to fill the canvas
     """
 
-  __slots__ = "canvas_owner", "char", "position", "name", "group", "distance"
+  __slots__ = "canvas_owner", "char", "position", "name", "group", "distance", "on_function_ready"
 
   def __init__(self,
                canvas_owner: object,
                char: str,
                position: list,
                name: str,
+               on_function_ready: callable = None,
                group=None):
 
     self.char = char
@@ -84,15 +82,15 @@ class Sprite:
     canvas_owner.sprite_names_dict[self.name] = self
     canvas_owner.sprite_position_dict[self] = position
 
+    #call function ready that is given.
+    on_function_ready
+
   def destroy(self):
 
     del self.canvas_owner.sprite_names_dict[self.name]
     del self.canvas_owner.sprite_position_dict[self]
     self.canvas_owner.sprite_names.remove(self.name)
     self.canvas_owner.sprite_tree.remove(self)
-
-    print(self.canvas_owner.sprite_names, "del", self.name)
-    print(self.canvas_owner.sprite_tree, "del")
 
     del self
 
@@ -143,18 +141,15 @@ class Sprite:
 
     return object_colliding
 
-
-  
-  
-
   def update_distance(self):
     """
-    gets index from "render_sprite_list"
-    and update "render_distance_list" like so :
 
-    self.canvas_owner.render_distance_list[index] =                        self.distance
+        update the dictionary : "sprite_position_dict" of "canvas_owner"
+        like so :
 
-    """
+        sprite_reference :  sprite_position
+
+        """
 
     # update it
     self.canvas_owner.sprite_position_dict[self] = self.position
@@ -204,6 +199,11 @@ class Sprite:
 
 
 class Camera:
+  """
+
+    Object that can render a part of a canvas at a given position with a given size using " render() "
+
+    """
 
   __slots__ = "canvas_owner", "size", "position", "name", "sprite_render_priority", "sprite_distance_dict"
 
@@ -222,58 +222,11 @@ class Camera:
     ''' dictionnary that contain keys "sprite" for value "distance" '''
     self.sprite_distance_dict = {}
 
-  def render(
-    self,
-    is_string: bool = True,
-  ):
-    """
-        Returns the rendered canvas as a string if "is_string" is true else as a 2D-list
-        """
+    if size == [0, 0]:
 
-    self.update_sprite_distance_dict()
-
-    # clear canvas
-    render_canvas = self.clear_canvas()
-
-    self.get_every_distance_from()
-
-    for current_sprite in self.sprite_render_priority:
-
-      current_pos = current_sprite.position  # set position of the sprite we are looking at throught the for loop
-
-      camera_x = self.position[0]  # define x_axis of camera
-      camera_y = self.position[1]  # define y_axis of camera
-
-      current_pos_x = current_pos[0]
-      # define x_axis of the current sprite position we are looking at
-      current_pos_y = current_pos[1]
-      # define y_axis of the current sprite position we are looking at
-
-      RENDER_POS = [current_pos_x - camera_x, current_pos_y - camera_y
-                    ]  # sprite postion - camera_position
-
-      RENDER_POS_X = RENDER_POS[0]  # define x_axis of render position
-      RENDER_POS_Y = RENDER_POS[1]  # define y_axis of render position
-
-      self.edit_element(render_canvas, RENDER_POS_X, RENDER_POS_Y,
-                        current_sprite.char)
-      # Update render
-
-    if is_string:
-
-      line = ""
-
-      for current_line in render_canvas:
-
-        for current_element in current_line:
-          line += str(current_element)
-
-        line += "\n"
-
-      return line
-
-    else:
-      return render_canvas
+      warn(
+        f''' size of camera : "{name}" isn't defined so it will most likely not work.\n please define a valid size.'''
+      )
 
   def update_sprite_distance_dict(self):
     """
@@ -283,7 +236,6 @@ class Camera:
     self.sprite_distance_dict = {}
 
     for todo_sprite in self.canvas_owner.sprite_tree:
-
       sprite_position = [
         todo_sprite.position[0] - self.position[0],
         todo_sprite.position[1] - self.position[1]
@@ -302,8 +254,10 @@ class Camera:
     SIZE_X = self.size[0]
     SIZE_Y = self.size[1]
 
-    return [[self.canvas_owner.VOID for _ in range(SIZE_X)]
-            for _ in range(SIZE_Y)]
+    line = [self.canvas_owner.VOID for _ in range(SIZE_X)]
+
+    clear_canvas = [line for _ in range(SIZE_Y)]
+    return clear_canvas
 
   def edit_element(self, canvas, x, y, char):
     """
@@ -314,8 +268,8 @@ class Camera:
 
   def get_square_distance_to(self, position: list):
     """
-    returns the sum of the distance between the 4 corners of         the square
-    """
+        returns the sum of the distance between the 4 corners of         the square
+        """
 
     SIZE_X = self.size[0] - 1
     SIZE_Y = self.size[1] - 1
@@ -330,12 +284,15 @@ class Camera:
             math.dist(corner_bottom_right, position) +
             math.dist(corner_bottom_left, position))
 
-  def get_every_distance_from(self):
+  def render(self, is_string=True):
     """
-        define sprite_priority, which sprite should be rendered first.
+        Returns the rendered canvas as a string if "is_string" is true else as a 2D-list
         """
 
-    self.sprite_render_priority = []
+    self.update_sprite_distance_dict()
+    canvas = self.clear_canvas()
+
+    MAX_DISTANCE = (self.get_square_distance_to([0, 0]))
 
     distances = list(self.sprite_distance_dict.copy().values())
     sprite_list = list(self.sprite_distance_dict.copy().keys())
@@ -344,22 +301,46 @@ class Camera:
 
       min_distance = min(distances)
       # gets the smallest distance in list "distances"
+      is_off_screen = (min_distance + self.get_square_distance_to(
+        self.position)) > (MAX_DISTANCE +
+                           self.get_square_distance_to(self.position))
 
-      if not self.is_renderable(min_distance):
+      if is_off_screen:
         # if the smallest distance of the sprite(+ camera offset)
         # is bigger than "MAX_DISTANCE"
-
         break
 
+      #get corresponding sprite reference
       index = distances.index(min_distance)
-      self.sprite_render_priority.append(sprite_list[index])
+      sprite = sprite_list[index]
+      position_to_render_sprite = [
+        sprite.position[0] - self.position[0],
+        sprite.position[1] - self.position[1]
+      ]
 
-      # gets the correct sprite associated to it 's
-      # distance and appends list to"sprite_priority"
+      #edit canvas
+      self.edit_element(canvas, position_to_render_sprite[0],
+                        position_to_render_sprite[1], sprite.char)
 
+      # remove thoses
       del sprite_list[index]
       del distances[index]
-      # remove thoses
+
+    if is_string == True:
+
+      string_canvas = ""
+
+      for line in canvas:
+
+        for element in line:
+
+          string_canvas += element
+
+        string_canvas += "\n"
+
+      canvas = string_canvas
+
+    return canvas
 
   def is_renderable(self, distance):
     """
@@ -372,37 +353,39 @@ class Camera:
       MAX_DISTANCE + self.get_square_distance_to(self.position))
 
 
+def critic_test(size, amount):
 
-
-
-def critic_test(size , amount):
-
-  canvas = Canvas(0)
+  canvas = Canvas("0")
   camera = Camera(canvas, [size, size], [0, 0], "camera")
-  
-  for i in range(amount):
 
-    s1 = Sprite(canvas, 1, [i, 0], "s1")
-    s2 = Sprite(canvas, 2, [0, -i], "s2")
+  for i in range(amount):
+    s1 = Sprite(canvas, "1", [i, 0], "s1")
+    s2 = Sprite(canvas, "2", [0, -i], "s2")
 
   fps = 0
   start = time.monotonic_ns()
 
   mid_fps = []
+  mid_collision_time = []
 
-  for i in range(1000):
+  start_perf_counter = time.monotonic_ns()
+
+  while (time.monotonic_ns() - start_perf_counter) / 100000000 < 10.0:
 
     if ((time.monotonic_ns() - start) / 100000000) > 1.0:
-
       start = time.monotonic_ns()
       mid_fps.append(fps)
-
       fps = 0
 
+    collision_start = time.monotonic_ns()
     s1.get_colliding_objects()
-    camera.render()
+    mid_collision_time.append((time.monotonic_ns() - collision_start))
+    camera.render(False)
     fps += 1
 
   mid_fps = sum(mid_fps) / len(mid_fps)
+  mid_collision_time = sum(mid_collision_time) / len(mid_collision_time)
   print(f"{mid_fps} FPS")
+  print(f"collision time {mid_collision_time / 100000000}")
+
 
