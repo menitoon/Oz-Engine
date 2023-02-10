@@ -2,32 +2,39 @@ import math
 import time
 
 
-
 def warn(text: str):
   print(f"\033[93m!{text} \u001b[0m  ")
 
 
 class Canvas:
   """
-    Object that can store sprites in it to be rendered
-    """
+  Object that can store sprites in it to be rendered
+  """
 
-  __slots__ = "VOID", "distance_tree", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority", "sprite_position_dict",
+  __slots__ = "VOID", "distance_tree", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority", "sprite_position_dict", "sprite_group_dict", "group_tree"
 
   def __init__(self, VOID):
+    ''' Characters that fills the canvas when nothing is rendered on a tile. '''
     self.VOID = VOID
-
+    '''List that contains every distance of each sprite '''
     self.distance_tree = []
+    '''List that contains every reference of each sprite '''
     self.sprite_tree = []
-
+    '''List that contains every groups that exists'''
+    self.group_tree = []
+    '''List that contains every name of each sprite '''
     self.sprite_names = []
+    '''Dictionary that has a sprite reference as a key and the corresponding name as a value'''
     self.sprite_names_dict = {}
+    '''Dictionary that has a sprite reference as a key and the corresponding position as a value'''
     self.sprite_position_dict = {}
+    '''Dictionary that has a sprite reference as a key and the corresponding group as a value'''
+    self.sprite_group_dict = {}
 
   def get_elements(self, position: list, canvas: object):
     """
-        Returns sprites names at the given pos
-        """
+    Returns sprites names at the given pos
+    """
 
     object_at = []
 
@@ -46,58 +53,107 @@ class Canvas:
 
   def get_sprite(self, name):
     """
-        returns reference to sprite that owns the given name
-        """
+    returns reference to sprite that owns the given name
+    """
 
     return self.sprite_names_dict[name]
+
+  def call_group(self, group_to_call: str, method_to_call, *args):
+    """
+    Call a method  to every sprites that belongs to the group that is
+    given 
+
+    like so:
+
+    canvas.call_group("group_name_here" , method_is_going_to_be_called_on_them() )
+    
+    """
+
+    #gets every sprite that is in the group given
+
+    sprite_to_call = self.sprite_group_dict.get(group_to_call)
+    if sprite_to_call == None:
+      #if group given doesn't exist then sumbit error
+      raise Exception(
+        f'''The group "{group_to_call}" doesn't exist please specify a valid group to call. '''
+      )
+
+    for todo_sprite in sprite_to_call:
+
+      func = getattr(todo_sprite, method_to_call)
+      func(*args)
 
 
 class Sprite:
   """
-    Object that can be used to fill the canvas
-    """
+  Object that can be used to fill the canvas
+  """
 
-  __slots__ = "canvas_owner", "char", "position", "name", "group", "distance", "on_function_ready"
+  __slots__ = "canvas_owner", "char", "position", "name", "group", "distance",
+  "on_function_ready"
 
-  def __init__(self,
-               canvas_owner: object,
-               char: str,
-               position: list,
-               name: str,
-               on_function_ready: callable = None,
-               group=None):
-
+  def __init__(
+    self,
+    canvas_owner: object,
+    char: str,
+    position: list,
+    name: str,
+    group=None,
+  ):
+    '''Character that represents the sprite when rendered.'''
     self.char = char
+    '''List that has two element "x" and "y" it tells where to render the sprite.'''
     self.position = position
+    '''Name of the sprite that can be used to get reference from it using the "get_sprite" method throught a "Canvas" object.'''
     self.name = name
+    '''Canvas that the sprite is associated to.'''
     self.canvas_owner = canvas_owner
+    '''group is a string that be used to call a method on each sprite that has the same method with 
+    the method "call_group" through the canvas and it can also be used to check collision by seing which sprite of which
+    group is colliding with our sprite with the method "get_colliding_groups" that can be executed by a "Sprite" object. '''
+    self.group = group
 
     if name in canvas_owner.sprite_names:
       # change name if already taken
       self.name = name + f"@{str(id(self))}"
 
-    # register name in "canvas_owner" :
+    # register infos in "canvas_owner" :
     canvas_owner.sprite_tree.append(self)
     canvas_owner.sprite_names.append(self.name)
     canvas_owner.sprite_names_dict[self.name] = self
     canvas_owner.sprite_position_dict[self] = position
 
-    #call function ready that is given.
-    on_function_ready
+    if not (group in canvas_owner.sprite_group_dict):
+      #if group is new then add to "group_tree" and create new key
+      #location for "sprite_group_dict".
+      canvas_owner.sprite_group_dict[group] = []
+      canvas_owner.group_tree.append(group)
+
+    canvas_owner.sprite_group_dict[group].append(self)
 
   def destroy(self):
 
     del self.canvas_owner.sprite_names_dict[self.name]
     del self.canvas_owner.sprite_position_dict[self]
+
+    #remove self from key that contain every sprite in group
+    INDEX = self.canvas_owner.sprite_group_dict[self.group].index(self)
+    del (self.canvas_owner.sprite_group_dict[self.group])[INDEX]
+
     self.canvas_owner.sprite_names.remove(self.name)
     self.canvas_owner.sprite_tree.remove(self)
+
+    if len(self.canvas_owner.sprite_group_dict[self.group]) == 0:
+      #delete group if no one is in it.
+      del self.canvas_owner.sprite_group_dict[self.group]
+      self.canvas_owner.group_tree.remove(self.group)
 
     del self
 
   def rename(self, new_name: str):
     """
-        allows to change the name of a sprite, to "rename" it.
-        """
+    allows to change the name of a sprite, to "rename" it.
+    """
 
     del self.canvas_owner.sprite_names_dict[self.name]
 
@@ -114,8 +170,8 @@ class Sprite:
 
   def get_colliding_objects(self):
     """
-        Returns a list of colliding objects(by name)
-        """
+    Returns a list of colliding objects(by name)
+    """
 
     object_colliding = []
 
@@ -140,6 +196,36 @@ class Sprite:
         break
 
     return object_colliding
+
+  def get_colliding_groups(self):
+    """
+    Returns a list of colliding objects(by groups)
+    """
+
+    groups_colliding = []
+
+    sprite_check_list = list(
+      self.canvas_owner.sprite_position_dict.copy().keys())
+    position_check_list = list(
+      self.canvas_owner.sprite_position_dict.copy().values())
+
+    sprite_check_list.remove(self)
+    position_check_list.remove(self.position)
+
+    for todo_sprite in sprite_check_list:
+
+      POSITION_CHECK = self.canvas_owner.sprite_position_dict[
+        todo_sprite]  # gets the position from key
+
+      if self.position in position_check_list and not (set(
+          self.canvas_owner.group_tree) == set(groups_colliding)):
+
+        groups_colliding.append(
+          todo_sprite.group) if POSITION_CHECK == self.position else None
+      else:
+        break
+
+    return groups_colliding
 
   def update_distance(self):
     """
@@ -245,24 +331,22 @@ class Camera:
 
   def clear_canvas(self):
     """
-
-        returns a clean canvas, setted
-        in to it's empty state
-
-        """
+    returns a clean canvas, setted
+    in to it's empty state
+    """
 
     SIZE_X = self.size[0]
     SIZE_Y = self.size[1]
 
     line = [self.canvas_owner.VOID for _ in range(SIZE_X)]
 
-    clear_canvas = [line for _ in range(SIZE_Y)]
+    clear_canvas = [line.copy() for _ in range(SIZE_Y)]
     return clear_canvas
 
   def edit_element(self, canvas, x, y, char):
     """
-        allows to edit an element of a canvas
-        """
+    allows to edit an element of a canvas
+    """
 
     (canvas[y])[x] = char
 
@@ -286,8 +370,8 @@ class Camera:
 
   def render(self, is_string=True):
     """
-        Returns the rendered canvas as a string if "is_string" is true else as a 2D-list
-        """
+    Returns the rendered canvas as a string if "is_string" is true else as a          2D-list
+    """
 
     self.update_sprite_distance_dict()
     canvas = self.clear_canvas()
@@ -328,17 +412,12 @@ class Camera:
 
     if is_string == True:
 
-      string_canvas = ""
+      canvas = ["".join(canvas[line]) for line in range(len(canvas))]
 
-      for line in canvas:
+      for element in range(len(canvas) - 1):
 
-        for element in line:
-
-          string_canvas += element
-
-        string_canvas += "\n"
-
-      canvas = string_canvas
+        canvas[0] += "\n" + canvas[element + 1]
+      canvas = canvas[0]
 
     return canvas
 
@@ -353,14 +432,14 @@ class Camera:
       MAX_DISTANCE + self.get_square_distance_to(self.position))
 
 
-def critic_test(size, amount):
+def critic_test(size, amount, time_mid, is_print=True):
 
   canvas = Canvas("0")
   camera = Camera(canvas, [size, size], [0, 0], "camera")
 
   for i in range(amount):
-    s1 = Sprite(canvas, "1", [i, 0], "s1")
-    s2 = Sprite(canvas, "2", [0, -i], "s2")
+    s1 = Sprite(canvas, "0", [i, 0], "s1")
+    s2 = Sprite(canvas, "1", [0, -i], "s2")
 
   fps = 0
   start = time.monotonic_ns()
@@ -370,7 +449,7 @@ def critic_test(size, amount):
 
   start_perf_counter = time.monotonic_ns()
 
-  while (time.monotonic_ns() - start_perf_counter) / 100000000 < 10.0:
+  while ((time.monotonic_ns() - start_perf_counter) / 100000000) < time_mid:
 
     if ((time.monotonic_ns() - start) / 100000000) > 1.0:
       start = time.monotonic_ns()
@@ -383,9 +462,11 @@ def critic_test(size, amount):
     camera.render(False)
     fps += 1
 
-  mid_fps = sum(mid_fps) / len(mid_fps)
-  mid_collision_time = sum(mid_collision_time) / len(mid_collision_time)
-  print(f"{mid_fps} FPS")
-  print(f"collision time {mid_collision_time / 100000000}")
+  if is_print:
+
+    mid_fps = sum(mid_fps) / len(mid_fps)
+    mid_collision_time = sum(mid_collision_time) / len(mid_collision_time)
+    print(f"{mid_fps} FPS")
+    print(f"collision time {mid_collision_time / 100000000}")
 
 
