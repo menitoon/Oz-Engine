@@ -11,7 +11,7 @@ Oz-Engine is a text based engine made by @menitoon using python.
 It can be used to make games in terminal and with additional modules in discord or any matrix led based screen
 
 
-#### STARTUP
+### STARTUP 👟
 
  ``` pip install Oz-Engine ```
  
@@ -20,13 +20,16 @@ It can be used to make games in terminal and with additional modules in discord 
  ```
 
 
-## How to use it
+## How to use it 🤔
 
 ```diff 
-+ ⚠️ NOTE :  before reading this remind yourself that is still work in progress and unfinished this section  might be changed in the future.Some explanations might be unclear or wrong if so then please report them.
+- ⚠️ NOTE :  before reading this remind yourself that: 
+-this is still work in progress and unfinished and this section might be changed in the future.
+- Some explanations might be unclear or wrong if so then please report them.
+- Also The pip package might not be updated yet since it's managed by @Splatcraft2404.
 ```
 
-### Creating the canvas
+### Creating the canvas ⬜
 
 Start by instancing a canvas like so: 
 ```python 
@@ -49,7 +52,7 @@ print(camera.render())
 ```
 You should see a square filled with "#"
 
-## Adding Sprites
+## Adding Sprites 🍄
 
 It's cool and all but a little boring to have just an empty canvas.
 Let's add a sprite:
@@ -61,7 +64,7 @@ sprite = oz.Sprite(canvas , "S" , [3 , 3] , "first_sprite" )
 ```
 feel free to add multiples sprites :) !
 
-## moving functions
+## Moving functions 🏃
 
 If you wanted to move them then simply do that:
 ```python
@@ -87,10 +90,10 @@ sprite.change_postion(1 , -1)
 
 ```
 
-## Useful sprite methods
+## Useful sprite methods 🎓
 
 There are a few important function for sprites that needs to be known.
-For example if you want to delete an object
+For example if you want to delete 💣 an object 
 ```python
 albert_the_sprite.destroy()
 ```
@@ -100,7 +103,7 @@ or to rename it
 albert_the_sprite.rename("albert")
 ```
 
-but also to handle collisions
+but also to handle collisions 💥
 ```python
 albert_the_sprite.get_colliding_objects()
 ```
@@ -136,7 +139,7 @@ Please note that you will need to execute this method throught the canvas that i
 
 "group" is an optional argument of the object "Sprite" that can be used to call a method to each sprite that belong to this group or check collisions between groups.
 
-### Collision with groups
+### Collision with groups 💥
 
 First things first you need to actually define the group that the sprite belongs to:
 ```python
@@ -162,7 +165,7 @@ else:
 the method "get_colliding_groups()" returns a list that contains every groups that collides with the sprite
 that executes the method.
 
-## calling groups
+## Calling groups 📢
 
 Let's imagine that we are making a game where if a button is pressed all the doors should open
 well it would simple just to use the method "call_group()".
@@ -262,10 +265,304 @@ print(canvas.sprite_position_dict.values()) #prints all positions multiplied by 
 
 giving multiple arguments is possible.
 
+# Making a Game : __**Connect-4**__
 
-# How it works
+Power-4 is a classic game that can be easily made with __**Oz-Engine**__
+
+_(Snake 🐍 is also possible if you possess a microbit card go [here](https://github.com/menitoon/Oz-Engine-Microbit-version) if you are interested._) 
+![](Power-4.png)
+
+## Explaining How the **Gameloop** is structured
+
+Here I will be explain ``game`` function and then I'l explain how functions it uses are working.
+````python
+def game():
+
+  #make these accessibles through any functions
+  global canvas
+  global coin_red_position
+  global coin_yellow_position
+  global coin_level
+
+  #Instance "canvas"
+  canvas = oz.Canvas("██")
+  #Instance "camera"
+  camera = oz.Camera(canvas, [7, 6], [0, 0], "cam")
+
+  coin_level = [5 for i in range(camera.size[0])]*
+  #Contains every positions of red coins
+  coin_red_position = []
+  #Contains every positions of yellow coins
+  coin_yellow_position = []
+
+  #Tell who's playing
+  is_turn_p_one = True
+  #render
+  print(camera.render())
+  #Print the list of valid inputs
+  print( " " + (" ".join(get_possible_input())))
+
+  while True:
+
+    action = input(": ") #ask input
+
+    if action in get_possible_input(): #if action token is possible
+    
+      place_coin(int(action), "🔴" if is_turn_p_one else "🟡") #place "🔴" if red's                                                                 #turn else place"🟡"
+      is_turn_p_one = not is_turn_p_one
+      is_aligned = check_aligned()    #Tells if 4 coins of the same color are aligned
 
 
+      if is_aligned[0]: #if is_aligned[0] == True
+
+        break
+    
+    os.system('cls')        #clears the screen
+    print(camera.render())  #render
+    print( " " + (" ".join(get_possible_input()))) #print possible inputs
+
+  #End game script :
+  os.system('cls') #clear screen
+  print(camera.render()) #render
+  print(f"Aligned ! {is_aligned[1]} won !") #print win message
+  #ask if you want to do a knew a game
+  if input("Would you like to play an other round ?(y/n): ") == "y": #if input given is "y" 
+    game()                                                           #then restart game by calling "game()"
+    
+  else:
+    exit() #quit
+````
+```coin_level``` is a list with every high of every **column** the lower that high is the higher the coins are.
+
+## Creating the **Coin** class 🟡
+
+To be able to have more control over our sprites we will create the **Coin** class
+
+````python
+class Coin(oz.Sprite):
+
+  __slots__ = "canvas_owner", "char", "position", "name", "group", "distance",
+  "on_function_ready"
+
+  def __init__(
+    self,
+    canvas_owner: object,
+    char: str,
+    position: list,
+    name: str,
+    group=None,
+  ):
+    '''Character that represents the sprite when rendered.'''
+    self.char = char
+    '''List that has two element "x" and "y" it tells where to render the sprite.'''
+    self.position = position
+    '''Name of the sprite that can be used to get reference from it using the "get_sprite" method throught a "Canvas" object.'''
+    self.name = name
+    '''Canvas that the sprite is associated to.'''
+    self.canvas_owner = canvas_owner
+    '''group is a string that be used to call a method on each sprite that has the same method with 
+    the method "call_group" through the canvas and it can also be used to check collision by seing which sprite of which
+    group is colliding with our sprite with the method "get_colliding_groups" that can be executed by a "Sprite" object. '''
+    self.group = group
+
+    if name in canvas_owner.sprite_names:
+      # change name if already taken
+      self.name = name + f"@{str(id(self))}"
+
+    # register infos in "canvas_owner" :
+    canvas_owner.sprite_tree.append(self)
+    canvas_owner.sprite_names.append(self.name)
+    canvas_owner.sprite_names_dict[self.name] = self
+    canvas_owner.sprite_position_dict[self] = position
+
+    if not (group in canvas_owner.sprite_group_dict):
+      #if group is new then add to "group_tree" and create new key
+      #location for "sprite_group_dict".
+      canvas_owner.sprite_group_dict[group] = []
+      canvas_owner.group_tree.append(group)
+
+    canvas_owner.sprite_group_dict[group].append(self)
+
+    if self.char == "🟡":
+      coin_yellow_position.append(self.position)
+    else:
+      coin_red_position.append(self.position)
+````
+Here we created a custom **Sprite** class like we did [here](#calling-groups)
+
+## Placing down a coin
+Let's create a function to place down some coins.
+````python
+def place_coin(x, val):
+
+  coin = Coin(canvas, val, [x, coin_level[x]], "coin")
+  coin_level[x] -= 1 #so that the next coin at this column will go up
+
+````
+**x** represents the column where we place our coin and **val** whethever it's a **red** one 🔴 or a **yellow** one 🟡
+
+## Giving valid inputs
+The two players needs to know in which column they can place a coin, so let's make a function to do this:
+```python
+def get_possible_input():
+
+  return [str(c) for c in range(len(coin_level)) if not (coin_level[c] == -1)] 
+````
+we return a list of all column that aren't full, we also use **str()** to later on have more control over
+what we print to the player.
+
+## detecting if coins are aligned
+
+```python
+def check_aligned():
+
+
+  has_alignement = (False , "None") # if someone won or not
+  
+  # check if red are aligned
+  for red_coin_pos in coin_red_position:
+
+    horizontal_match = 0
+    vertical_match = 0
+    diagonal_left_match = 0
+    diagonal_right_match = 0
+
+    POS_X = red_coin_pos[0]
+    POS_Y = red_coin_pos[1]
+
+    # horizontal_match check
+    
+    for i in range(1, 4):
+      if [i + POS_X ,POS_Y] in coin_red_position: # if are aligned add 1 to horizontal_match 
+        horizontal_match += 1
+        
+
+      else:
+        break
+
+    # to get a win you need at least 3 matches
+    # we break if someone won 
+    if horizontal_match == 3:
+      has_alignement = (True , "red")
+      break
+
+    #we do same for others directions
+
+    # vertical_match check
+    for i in range(1, 4):
+      if [POS_X, i + POS_Y] in coin_red_position:
+        vertical_match += 1
+
+      else:
+        break
+
+    if vertical_match == 3:
+      has_alignement = (True , "red")
+      break
+
+    
+    # diagonal_left_match check
+    for i in range(1, 4):
+      if [-i + POS_X, -i + POS_Y] in coin_red_position:
+        diagonal_left_match += 1
+
+      else:
+        break
+
+    if diagonal_left_match == 3:
+      has_alignement = (True , "red")
+      break
+
+    # diagonal_right_match check
+    for i in range(1, 4):
+      if [i + POS_X, -i + POS_Y] in coin_red_position:
+        diagonal_right_match += 1
+
+      else:
+        break
+
+    if diagonal_right_match == 3:
+      has_alignement = (True , "red")
+      break
+  
+  if has_alignement[1] != "None":
+    return has_alignement
+
+  #we do the same for yellow coins
+  
+  for yellow_coin_pos in coin_yellow_position:
+
+    POS_X = yellow_coin_pos[0]
+    POS_Y = yellow_coin_pos[1]
+
+    horizontal_match = 0
+    vertical_match = 0
+    diagonal_left_match = 0
+    diagonal_right_match = 0
+
+    # horizontal_match check
+    for i in range(1, 4):
+      if [i + POS_X ,POS_Y] in coin_yellow_position:
+        horizontal_match += 1
+
+      else:
+        break
+
+    if horizontal_match == 3:
+      has_alignement = True
+      break
+
+
+    # vertical_match check
+    for i in range(1, 4):
+      if [POS_X, i + POS_Y] in coin_yellow_position:
+        vertical_match += 1
+
+      else:
+        break
+
+    if vertical_match == 3:
+      has_alignement = (True , "yellow")
+      break
+
+    
+    # diagonal_left_match check
+    for i in range(1, 4):
+      if [-i + POS_X, -i + POS_Y] in coin_yellow_position:
+        diagonal_left_match += 1
+
+      else:
+        break
+
+    if diagonal_left_match == 3:
+      has_alignement = (True , "yellow")
+      break
+
+    # diagonal_right_match check
+    for i in range(1, 4):
+      if [i + POS_X, -i + POS_Y] in coin_p_two_position:
+        diagonal_right_match += 1
+
+      else:
+        break
+
+    if diagonal_right_match == 3:
+      has_alignement = (True , "yellow")
+      break
+
+  return has_alignement
+```
+
+
+## Executing the **game** 🕹️
+
+Just execute the ```game()``` function at the end of your script, save it and close it.
+Now just double click on the ``main.py`` file to run it.
+
+And we have a working Connect-4 game 😊.
+
+_if you have any issue you can find the full code [here](https://github.com/menitoon/Connect-4-with-Oz-Engine)
+# How it works 🌟
 
 
 To start simple imagine we have a board that is filled with "0"
@@ -401,7 +698,7 @@ It works with a dictionnary that stores names as keys a reference as values.
     return self.sprite_names_dict[name]
 ```
 
-## call_group
+## call_group 📢
 
 Allows you to call a "method" to a group
 ```python
@@ -435,7 +732,7 @@ Allows you to call a "method" to a group
 
 "sprite_group_dict" is dictionnary that holds every sprite reference that is in the given group.
 
-# Sprite
+# Sprite 🍄
 
 Sprite objects are used to fill the canvas
 they have 5 parameters :
@@ -511,7 +808,7 @@ and here we register info to the __canvas_owner__.
 
 ```
 
-## destroy
+## destroy 💣
 
 __destroy__ is used to delete sprite
 it just deletes things that we registered earlier in the __\_\_init\_\___
@@ -561,7 +858,7 @@ it changes every time the __old__ name was used by the __new__ one given.
     self.canvas_owner.sprite_names_dict[new_name] = self
 ```
 
-## get_colliding_objects
+## get_colliding_objects 💥
 
 __get_colliding_object__ works by getting the reference of each sprite that is located at the
 same __position__ of the sprite that calls the method.
@@ -599,7 +896,7 @@ same __position__ of the sprite that calls the method.
 
 It gives back names of the sprite who are colliding with us.
 
-## get_colliding_groups
+## get_colliding_groups 💥
 
 It works the same as __get_colliding_objects__ except here it gives the group instead of giving back names.
 We check if all groups are in __groups_colliding__.
@@ -669,7 +966,7 @@ but here how one of then works:
     self.update_distance()
 ```
 
-# Camera
+# Camera 🎥
 
 __Camera__ object is used to render __Canvas__ object
 it has 4 parameters:
