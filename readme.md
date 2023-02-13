@@ -6,9 +6,10 @@
 
 ===========================================================================
 
+![PyPI](https://img.shields.io/pypi/v/Oz-Engine?label=Oz-Engine%20pypi)
 
 Oz-Engine is a text based engine made by @menitoon using python.
-It can be used to make games in terminal and with additional modules in discord or any matrix led based screen
+It can be used to make games in terminal and with additional modules in discord, [microbit](https://github.com/menitoon/Oz-Engine-Microbit-version) or any matrix led based screen
 
 
 ### STARTUP 👟
