@@ -1,6 +1,3 @@
-# Contributing 
-
-I'm looking 👀 for **contributors** so feel free to apply.
 
 ## How the **Engine** works 🌟
 
