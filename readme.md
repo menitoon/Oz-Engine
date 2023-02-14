@@ -8,7 +8,7 @@
 
 ![PyPI](https://img.shields.io/pypi/v/Oz-Engine?label=Oz-Engine%20pypi)
 
-Oz-Engine is a text based engine made by @menitoon using **Python.
+# Oz-Engine, a **Text-Based Engine** made using **Python**.
 It can be used to make games in:
 * **Terminal**  
 * **Discord** 
