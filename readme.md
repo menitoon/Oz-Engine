@@ -574,3 +574,8 @@ And we have a working Connect-4 game 😊.
 
 _if you have any issue you can find the full code [here](https://github.com/menitoon/Connect-4-with-Oz-Engine)
 
+
+# Contributing 💻
+
+Contributions to this project are greetly apreciated 😁 for more info ℹ️
+check the [Contribution Guidelines](https://github.com/menitoon/Oz-Engine/blob/main/CONTRIBUTING.md).
