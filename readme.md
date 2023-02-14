@@ -19,7 +19,7 @@ It can be used to make games in:
 ![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  ![](https://thumbs.gfycat.com/ScientificTatteredCardinal-size_restricted.gif)
 
 
-## Text
+## Text 📜
 
 Play in the **console**
 
@@ -38,7 +38,7 @@ Play in the **console**
 00000
 ```
 
-## Screen
+## Screen 📺
 Or on a **matrix led screen**
 
 ![](https://cdn.discordapp.com/attachments/958679110316617748/1075077189969645578/Microbit.png)
