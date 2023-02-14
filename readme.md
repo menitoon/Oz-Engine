@@ -8,14 +8,22 @@
 
 ![PyPI](https://img.shields.io/pypi/v/Oz-Engine?label=Oz-Engine%20pypi)
 
-Oz-Engine is a text based engine made by @menitoon using python.
-It can be used to make games in terminal and with additional modules in discord, [microbit](https://github.com/menitoon/Oz-Engine-Microbit-version) or any matrix led based screen
+Oz-Engine is a text based engine made by @menitoon using **Python.
+It can be used to make games in:
+* **Terminal**  
+* **Discord** 
+* [**microbit**](https://github.com/menitoon/Oz-Engine-Microbit-version)
+* any matrix-led screen
 
+![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  ![](https://thumbs.gfycat.com/VariableFastBlackfly-size_restricted.gif)
 
 ### STARTUP 👟
 
+In **CommandLine** type this:
+
  ``` pip install Oz-Engine ```
  
+ Then **import** it at the top of your project like so:
  ```python 
  import OzEngine as oz 
  ```
@@ -25,8 +33,7 @@ It can be used to make games in terminal and with additional modules in discord,
 
 ```diff 
 - ⚠️ NOTE :  before reading this remind yourself that: 
--this is still work in progress and unfinished and this section might be changed in the future.
-- Some explanations might be unclear or wrong if so then please report them.
+- Some explanations might be unclear or wrong if so then please report them so it can changed.
 - Also The pip package might not be updated yet since it's managed by @Splatcraft2404.
 ```
 
