@@ -15,7 +15,7 @@ It can be used to make games in:
 * [**microbit**](https://github.com/menitoon/Oz-Engine-Microbit-version)
 * any matrix-led screen
 
-![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  ![](https://thumbs.gfycat.com/VariableFastBlackfly-size_restricted.gif)
+![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  ![](https://thumbs.gfycat.com/ScientificTatteredCardinal-size_restricted.gif)
 
 ### STARTUP 👟
 
@@ -277,8 +277,11 @@ giving multiple arguments is possible.
 
 Power-4 is a classic game that can be easily made with __**Oz-Engine**__
 
-_(Snake 🐍 is also possible if you possess a microbit card go [here](https://github.com/menitoon/Oz-Engine-Microbit-version) if you are interested._) 
-![](Power-4.png)
+
+![](https://thumbs.gfycat.com/ScientificTatteredCardinal-size_restricted.gif)
+
+_(Snake 🐍 is also possible if you possess a microbit card, go [here](https://github.com/menitoon/Oz-Engine-Microbit-version) if you are interested._) 
+
 
 ## Explaining How the **Gameloop** is structured
 
