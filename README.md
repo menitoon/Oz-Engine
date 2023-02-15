@@ -17,7 +17,7 @@ It can be used to make games in:
 * **Any matrix-led screen**
 
 
-![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  ![](https://thumbs.gfycat.com/ScientificTatteredCardinal-size_restricted.gif)
+![](https://thumbs.gfycat.com/ScientificTatteredCardinal-size_restricted.gif)  ![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  
 ![](https://cdn.discordapp.com/attachments/958679110316617748/1075475653413056513/explanation.png)
 
 ## Features
