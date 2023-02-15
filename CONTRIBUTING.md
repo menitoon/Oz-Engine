@@ -1,3 +1,12 @@
+# Contributing
+
+If you want to contribute to **Oz-Engine** to :
+* Fix a **bug**
+* Improve **performance**
+* Add useful **features** 
+* Add **enhancements**
+
+then making a pull request is the best solution !
 
 ## How the **Engine** works 🌟
 
