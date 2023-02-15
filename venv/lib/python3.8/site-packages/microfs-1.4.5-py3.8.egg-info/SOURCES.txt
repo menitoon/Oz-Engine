@@ -1,0 +1,13 @@
+CHANGES.rst
+LICENSE
+MANIFEST.in
+README.rst
+microfs.py
+setup.cfg
+setup.py
+microfs.egg-info/PKG-INFO
+microfs.egg-info/SOURCES.txt
+microfs.egg-info/dependency_links.txt
+microfs.egg-info/entry_points.txt
+microfs.egg-info/requires.txt
+microfs.egg-info/top_level.txt

@@ -1,0 +1,4 @@
+[console_scripts]
+py2hex = uflash:py2hex
+uflash = uflash:main
+
