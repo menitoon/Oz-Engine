@@ -1,16 +1,16 @@
 # The command that runs the program. If the interpreter field is set, it will have priority and this run command will do nothing
-run = "python3 main.py"
+run = "python3 Engin.py"
 
 # The primary language of the repl. There can be others, though!
 language = "python3"
-entrypoint = "Engine.py"
+entrypoint = "src"
 # A list of globs that specify which files and directories should
 # be hidden in the workspace.
 hidden = ["venv", ".config", "**/__pycache__", "**/.mypy_cache", "**/*.pyc"]
 
 # Specifies which nix channel to use when building the environment.
 [nix]
-channel = "stable-21_11"
+channel = "stable-22_11"
 
 # The command to start the interpreter.
 [interpreter]
@@ -18,7 +18,7 @@ channel = "stable-21_11"
   args = [
     "stderred",
     "--",
-    "prybar-python3",
+    "prybar-python310",
     "-q",
     "--ps1",
     "\u0001\u001b[33m\u0002\u0001\u001b[00m\u0002 ",
