@@ -63,6 +63,6 @@ If you want to get started and learn how to use it go [here](https://github.com/
 ## Contributing 💻
 
 Contributions to this project are greetly apreciated 😁 for more info ℹ️
-check the [Contribution Guidelines](https://github.com/menitoon/Oz-Engine/blob/main/CONTRIBUTING.md).
+check the [Contribution Guidelines](https://github.com/menitoon/Oz-Engine/blob/main/CONTRIBUTING.md), there's a also a deep explanation on how the engine works.
 
 __If you want to support me and the project please consider leaving a star ⭐  as it just makes my day better !__
