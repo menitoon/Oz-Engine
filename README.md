@@ -18,31 +18,7 @@ It can be used to make games in:
 
 
 ![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  ![](https://thumbs.gfycat.com/ScientificTatteredCardinal-size_restricted.gif)
-
-
-### Text 
-
-Play in the **console** 
-
-| 0 | 0 | 0 | 0 | 0 |
-|---|---|---|---|---|
-| 0 | 0 | 0 | 0 | 0 |
-| 0 | 0 | 0 | 5 | 0 |   
-| 0 | 1 | 2 | 0 | 0 |
-| 0 | 0 | 0 | 0 | 0 |
-
-```
-00000
-00000
-00050
-01200
-00000
-```
-
-### Screen
-Or on a **matrix led screen**
-
-![](https://cdn.discordapp.com/attachments/958679110316617748/1075077189969645578/Microbit.png)
+![](https://cdn.discordapp.com/attachments/958679110316617748/1075473483913494578/explanation.png)
 
 ## Features
 
