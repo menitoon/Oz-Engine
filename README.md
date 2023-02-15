@@ -36,7 +36,7 @@ It can be used to make games in:
 
 In **CommandLine** type this:
 
- ``` pip install Oz-Engine ```
+``$ pip install Oz-Engine``
  
  Then **import** it at the top of your project like so:
  ```python 
