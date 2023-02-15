@@ -1,4 +1,4 @@
-# Contributing
+# Contributing 🤚
 
 If you want to contribute to **Oz-Engine** to :
 * Fix a **bug**
@@ -8,7 +8,18 @@ If you want to contribute to **Oz-Engine** to :
 
 then making a pull request is the best solution !
 
-## How the **Engine** works 🌟
+## Adding / Changing a feature 
+
+When you add or change please describe prescilly what you did it
+and how it works so I can understand it.
+
+## Reporting a **bug** 🪲
+
+When reporting a bug please be clear in what isn't working when the following action are performed, if you know why this occurs
+then try explaining it 🗣️, it will help others understand what should be exactly fixed.
+
+
+# How the **Engine** works 🌟
 
 To start simple imagine we have a board that is filled with "0"
 
