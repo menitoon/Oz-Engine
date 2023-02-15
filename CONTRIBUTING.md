@@ -10,7 +10,7 @@ then making a pull request is the best solution !
 
 ## Adding / Changing a feature 
 
-When you add or change please describe prescilly what you did it
+When you add or change please describe precisely what you did it
 and how it works so I can understand it.
 
 ## Reporting a **bug** 
