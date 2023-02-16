@@ -59,4 +59,3 @@ Contributions to this project are greatly apreciated, check the [Contribution Gu
 
 
 __If you want to support me and the project please consider leaving a star ⭐  as it just makes my day better !__
-(also please give feedback on this repository, It helps a ton, thanks)
