@@ -17,8 +17,8 @@ It can be used to make games in:
 * **Any matrix-led screen**
 
 
-![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  ![](https://thumbs.gfycat.com/ScientificTatteredCardinal-size_restricted.gif)
-![](https://cdn.discordapp.com/attachments/958679110316617748/1075473483913494578/explanation.png)
+![](https://thumbs.gfycat.com/ScientificTatteredCardinal-size_restricted.gif)  ![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  
+
 
 ## Features
 
@@ -27,13 +27,16 @@ It can be used to make games in:
 * Calling Groups 
 * Camera Support 
 * Custom Sprite Type 
+* Flexible Render Target
 
+(You can either play in the **console** or on a **matrix-led screen**) 
+![](https://cdn.discordapp.com/attachments/958679110316617748/1075516653032460388/2explanation.png)
 
 ## Startup
 
 In **CommandLine** type this:
 
- ``` pip install Oz-Engine ```
+``$ pip install Oz-Engine``
  
  Then **import** it at the top of your project like so:
  ```python 
@@ -46,9 +49,14 @@ In **CommandLine** type this:
 ******If you want to get started and learn how to use it go [here](https://github.com/menitoon/Oz-Engine/wiki).******
 
 
+## License
+
+Distributed under the GPL-3.0 license check ``LICENSE.txt`` for more information.
+
 ## Contributing 
 
-Contributions to this project are greatly apreciated for more info ℹ️
-check the [Contribution Guidelines](https://github.com/menitoon/Oz-Engine/blob/main/CONTRIBUTING.md), there's a also a deep explanation on how the engine works.
+Contributions to this project are greatly apreciated, check the [Contribution Guidelines](https://github.com/menitoon/Oz-Engine/blob/main/CONTRIBUTING.md)
+
 
 __If you want to support me and the project please consider leaving a star ⭐  as it just makes my day better !__
+(also please give feedback on this repository, It helps a ton, thanks)
