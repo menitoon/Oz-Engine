@@ -11,13 +11,22 @@ class Canvas:
   Object that can store sprites in it to be rendered
   """
 
-  __slots__ = "VOID", "distance_tree", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_priority", "sprite_position_dict", "sprite_group_dict", "group_tree"
+  __slots__ = "void",  "sprite_names", "sprite_layer_dict", "sprite_name_dict", "sprite_tree", "sprite_position_dict", \
+              "sprite_group_dict", "group_tree", "camera_tree", "camera_name_dict"
 
-  def __init__(self, VOID):
+  def __init__(self, void):
+    """
+
+    Parameters
+    ----------
+    void
+    """
+
     ''' Characters that fills the canvas when nothing is rendered on a tile. '''
-    self.VOID = VOID
-    '''List that contains every distance of each sprite '''
-    self.distance_tree = []
+    self.void = void
+
+    #   Sprite    #
+
     '''List that contains every reference of each sprite '''
     self.sprite_tree = []
     '''List that contains every groups that exists'''
@@ -25,11 +34,19 @@ class Canvas:
     '''List that contains every name of each sprite '''
     self.sprite_names = []
     '''Dictionary that has a sprite reference as a key and the corresponding name as a value'''
-    self.sprite_names_dict = {}
+    self.sprite_name_dict = {}
     '''Dictionary that has a sprite reference as a key and the corresponding position as a value'''
     self.sprite_position_dict = {}
     '''Dictionary that has a sprite reference as a key and the corresponding group as a value'''
     self.sprite_group_dict = {}
+
+    #     Camera     #
+
+    '''List that contains every reference of each camera'''
+    self.camera_tree = []
+    '''Dictionary that has a camera reference as a key and the corresponding name as a value'''
+    self.camera_name_dict = {}
+
 
   def get_elements(self, position: list, canvas: object):
     """
@@ -56,7 +73,7 @@ class Canvas:
     returns reference to sprite that owns the given name
     """
 
-    return self.sprite_names_dict[name]
+    return self.sprite_name_dict[name]
 
   def call_group(self, group_to_call: str, method_to_call, *args):
     """
@@ -89,7 +106,7 @@ class Sprite:
   Object that can be used to fill the canvas
   """
 
-  __slots__ = "canvas_owner", "char", "position", "name", "group", "distance",
+  __slots__ = "canvas_owner", "char", "position", "name", "group", "layer",
   "on_function_ready"
 
   def __init__(
@@ -120,7 +137,7 @@ class Sprite:
     # register infos in "canvas_owner" :
     canvas_owner.sprite_tree.append(self)
     canvas_owner.sprite_names.append(self.name)
-    canvas_owner.sprite_names_dict[self.name] = self
+    canvas_owner.sprite_name_dict[self.name] = self
     canvas_owner.sprite_position_dict[self] = position
 
     if not (group in canvas_owner.sprite_group_dict):
@@ -131,9 +148,28 @@ class Sprite:
 
     canvas_owner.sprite_group_dict[group].append(self)
 
+
+  def get_layer_and_max_distance(self , camera):
+
+    LAYER = None
+    MAX_LAYER = list(camera.layer_dict.keys())[-1]
+
+    POSITION_X = self.position[0]
+    POSITION_Y = self.position[1]
+
+    DISTANCE_X = abs(POSITION_X - round(self.size[0] / 2))
+    DISTANCE_Y = abs(POSITION_Y - round(self.size[0] / 2))
+
+    if DISTANCE_X > DISTANCE_Y:
+      LAYER = DISTANCE_X
+    else:
+      LAYER = DISTANCE_Y
+
+    return LAYER , MAX_LAYER
+
   def destroy(self):
 
-    del self.canvas_owner.sprite_names_dict[self.name]
+    del self.canvas_owner.sprite_name_dict[self.name]
     del self.canvas_owner.sprite_position_dict[self]
 
     #remove self from key that contain every sprite in group
@@ -148,6 +184,19 @@ class Sprite:
       del self.canvas_owner.sprite_group_dict[self.group]
       self.canvas_owner.group_tree.remove(self.group)
 
+
+
+    #  camera   #
+    for todo_camera in self.canvas_owner.camera_tree:
+
+      func_output = self.get_layer_and_max_distance(todo_camera)
+      LAYER = func_output[0]
+      MAX_LAYER = func_output[1]
+
+      # adds the reference to the correct layer
+      if not LAYER > MAX_LAYER:
+        todo_camera.layer_dict[LAYER].remove(self.name)
+
     del self
 
   def rename(self, new_name: str):
@@ -155,7 +204,7 @@ class Sprite:
     allows to change the name of a sprite, to "rename" it.
     """
 
-    del self.canvas_owner.sprite_names_dict[self.name]
+    del self.canvas_owner.sprite_name_dict[self.name]
 
     if new_name in self.canvas_owner.sprite_names:
       # change new_name with object id()
@@ -166,7 +215,7 @@ class Sprite:
     INDEX = self.canvas_owner.sprite_names.index(self.name)
     self.canvas_owner.sprite_names[INDEX] = new_name
     self.name = new_name
-    self.canvas_owner.sprite_names_dict[new_name] = self
+    self.canvas_owner.sprite_name_dict[new_name] = self
 
   def get_colliding_objects(self):
     """
@@ -227,26 +276,18 @@ class Sprite:
 
     return groups_colliding
 
-  def update_distance(self):
-    """
 
-        update the dictionary : "sprite_position_dict" of "canvas_owner"
-        like so :
 
-        sprite_reference :  sprite_position
-
-        """
-
-    # update it
-    self.canvas_owner.sprite_position_dict[self] = self.position
 
   def change_x(self, value: int):
     """
-        adds "value" to the y-axis of "position"
-        """
+    adds "value" to the y-axis of "position"
+    """
 
     self.position[0] += value
-    self.update_distance()
+
+
+
 
   def change_y(self, value: int):
     """
@@ -254,7 +295,7 @@ class Sprite:
         """
 
     self.position[1] += value
-    self.update_distance()
+    self.update_layer()
 
   def set_x(self, value: int):
     """
@@ -262,7 +303,7 @@ class Sprite:
         """
 
     self.position[0] = value
-    self.update_distance()
+    self.update_layer()
 
   def set_y(self, value: int):
     """
@@ -270,18 +311,19 @@ class Sprite:
         """
 
     self.position[1] = value
-    self.update_distance()
+    self.update_layer()
 
   def set_position(self, value: list):
 
     self.position = value
-    self.update_distance()
+    self.update_layer()
 
   def change_position(self, x_val: int = 0, y_val: int = 0):
 
     self.position[0] += x_val
     self.position[1] += y_val
-    self.update_distance()
+    self.update_layer()
+
 
 
 class Camera:
@@ -291,7 +333,7 @@ class Camera:
 
     """
 
-  __slots__ = "canvas_owner", "size", "position", "name", "sprite_render_priority", "sprite_distance_dict"
+  __slots__ = "canvas_owner", "size", "position", "name", "sprite_render_priority", "layer_dict"
 
   def __init__(self, canvas_owner: object, size: list, position: list,
                name: str):
@@ -306,7 +348,7 @@ class Camera:
     ''' define the order of rending sprties '''
     self.sprite_render_priority = []
     ''' dictionnary that contain keys "sprite" for value "distance" '''
-    self.sprite_distance_dict = {}
+    self.layer_dict = {}
 
     if size == [0, 0]:
 
@@ -314,20 +356,35 @@ class Camera:
         f''' size of camera : "{name}" isn't defined so it will most likely not work.\n please define a valid size.'''
       )
 
-  def update_sprite_distance_dict(self):
-    """
-        update the distance of every sprite
-        """
+    if name in canvas_owner.sprite_names:
+      # change name if already taken
+      self.name = name + f"@{str(id(self))}"
 
-    self.sprite_distance_dict = {}
 
-    for todo_sprite in self.canvas_owner.sprite_tree:
-      sprite_position = [
-        todo_sprite.position[0] - self.position[0],
-        todo_sprite.position[1] - self.position[1]
-      ]
-      self.sprite_distance_dict[todo_sprite] = self.get_square_distance_to(
-        sprite_position)
+    self.canvas_owner.camera_tree.append(self)
+    self.canvas_owner.camera_name_dict[self.name] = self
+
+    self.define_layers()
+
+  def define_layers(self):
+
+    self.layer_dict = {}
+
+    # determine how many layers are needed
+    LENGTH = self.size[0] if self.size[0] > self.size[1] else self.size[1]
+
+
+    if not LENGTH % 2 == 0:
+
+      LENGTH = (LENGTH) / 2
+      LENGTH = round(LENGTH) + 1
+    else:
+      LENGTH = (LENGTH) / 2
+
+    # create possible layers
+    self.layer_dict = {todo: [] for todo in range(int(LENGTH))}
+
+
 
   def clear_canvas(self):
     """
@@ -338,7 +395,7 @@ class Camera:
     SIZE_X = self.size[0]
     SIZE_Y = self.size[1]
 
-    line = [self.canvas_owner.VOID for _ in range(SIZE_X)]
+    line = [self.canvas_owner.void for _ in range(SIZE_X)]
 
     clear_canvas = [line.copy() for _ in range(SIZE_Y)]
     return clear_canvas
@@ -350,65 +407,69 @@ class Camera:
 
     (canvas[y])[x] = char
 
-  def get_square_distance_to(self, position: list):
-    """
-        returns the sum of the distance between the 4 corners of         the square
-        """
 
-    SIZE_X = self.size[0] - 1
-    SIZE_Y = self.size[1] - 1
+  def update_layer_dict(self , CURRENT_SPRITES_UPDATED):
 
-    corner_top_left = [0, 0]
-    corner_top_right = [SIZE_X, 0]
-    corner_bottom_right = [SIZE_X, SIZE_Y]
-    corner_bottom_left = [0, SIZE_Y]
 
-    return (math.dist(corner_top_left, position) +
-            math.dist(corner_top_right, position) +
-            math.dist(corner_bottom_right, position) +
-            math.dist(corner_bottom_left, position))
+    SPRITE_TO_UPDATE = set(self.canvas_owner.sprite_names).difference(CURRENT_SPRITES_UPDATED)
+    # update layer_dict
+    for todo_sprite_name in SPRITE_TO_UPDATE:
+
+      # find out which layer that sprite is in
+
+      LAYER = None
+      MAX_LAYER = list(self.layer_dict.keys())[-1]
+
+      POSITION_X = self.canvas_owner.get_sprite(todo_sprite_name).position[0]
+      POSITION_Y = self.canvas_owner.get_sprite(todo_sprite_name).position[1]
+
+      DISTANCE_X = abs(POSITION_X - round(self.size[0] / 2))
+      DISTANCE_Y = abs(POSITION_Y - round(self.size[0] / 2))
+
+      if DISTANCE_X > DISTANCE_Y:
+        LAYER = DISTANCE_X
+      else:
+        LAYER = DISTANCE_Y
+
+      # adds the reference to the correct layer
+      if not LAYER > MAX_LAYER:
+        # if is_on_screen
+        self.layer_dict[LAYER].append(todo_sprite_name)
+
+
 
   def render(self, is_string=True):
     """
     Returns the rendered canvas as a string if "is_string" is true else as a          2D-list
     """
 
-    self.update_sprite_distance_dict()
+    CURRENT_SPRITES_UPDATED = []
+    for i in list(self.layer_dict.values()):
+      CURRENT_SPRITES_UPDATED.extend(i)
+    CURRENT_SPRITES_UPDATED = set(CURRENT_SPRITES_UPDATED)
+
+
+    if set(self.canvas_owner.sprite_names) != CURRENT_SPRITES_UPDATED:
+
+      self.update_layer_dict(CURRENT_SPRITES_UPDATED)
+
     canvas = self.clear_canvas()
 
-    MAX_DISTANCE = (self.get_square_distance_to([0, 0]))
+    print(self.layer_dict)
 
-    distances = list(self.sprite_distance_dict.copy().values())
-    sprite_list = list(self.sprite_distance_dict.copy().keys())
+    for todo_layer in self.layer_dict.keys():
+      for todo_sprite_name in self.layer_dict[todo_layer]:
+        SPRITE_REFERENCE = self.canvas_owner.get_sprite(todo_sprite_name)
+        RENDER_POSITION = SPRITE_REFERENCE.position
+        #substact camera pos
+        RENDER_POSITION[0] -= self.position[0]
+        RENDER_POSITION[1] -= self.position[1]
 
-    for todo in range(len(self.canvas_owner.sprite_tree)):
 
-      min_distance = min(distances)
-      # gets the smallest distance in list "distances"
-      is_off_screen = (min_distance + self.get_square_distance_to(
-        self.position)) > (MAX_DISTANCE +
-                           self.get_square_distance_to(self.position))
+        self.edit_element(canvas, RENDER_POSITION[0], RENDER_POSITION[1], SPRITE_REFERENCE.char)
 
-      if is_off_screen:
-        # if the smallest distance of the sprite(+ camera offset)
-        # is bigger than "MAX_DISTANCE"
-        break
 
-      #get corresponding sprite reference
-      index = distances.index(min_distance)
-      sprite = sprite_list[index]
-      position_to_render_sprite = [
-        sprite.position[0] - self.position[0],
-        sprite.position[1] - self.position[1]
-      ]
 
-      #edit canvas
-      self.edit_element(canvas, position_to_render_sprite[0],
-                        position_to_render_sprite[1], sprite.char)
-
-      # remove thoses
-      del sprite_list[index]
-      del distances[index]
 
     if is_string == True:
 
@@ -421,15 +482,11 @@ class Camera:
 
     return canvas
 
-  def is_renderable(self, distance):
-    """
-        returns whether a sprite a renderable from the distance given.
-        """
 
-    MAX_DISTANCE = (self.get_square_distance_to([0, 0]))
+  def set_size(self , new_size : list):
 
-    return not (distance + self.get_square_distance_to(self.position)) > (
-      MAX_DISTANCE + self.get_square_distance_to(self.position))
+    self.size = new_size
+    self.define_layers()
 
 
 def critic_test(size, amount, time_mid, is_print=True):
@@ -470,3 +527,12 @@ def critic_test(size, amount, time_mid, is_print=True):
     print(f"collision time {mid_collision_time / 100000000}")
 
 
+
+
+
+canvas = Canvas("0")
+camera= Camera(canvas , [10 , 10] , [0 , 0], "camera")
+
+s1 = Sprite(canvas , "s" , [10 , 0] , "s1")
+
+camera.render()

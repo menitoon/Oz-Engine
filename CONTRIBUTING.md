@@ -47,9 +47,9 @@ def clear_canvas(self):
     SIZE_X = self.size[0]
     SIZE_Y = self.size[1]
 
-    line = [self.canvas_owner.VOID for _ in range(SIZE_X)] #creates a list containing the 
-                                                           #argument "VOID" 
-                                                           #it would give : '[ 0 , 0 , 0 , 0 , 0]'  if SIZE_X = 5 and VOID = 0)
+    line = [self.canvas_owner.void for _ in range(SIZE_X)] #creates a list containing the 
+                                                           #argument "void" 
+                                                           #it would give : '[ 0 , 0 , 0 , 0 , 0]'  if SIZE_X = 5 and void = 0)
 
     clear_canvas = [line.copy() for _ in range(SIZE_Y)]    #appends multiple  copies(so we can edit it) of line 
     return clear_canvas                                    #the amount of copies appended depends on the value "SIZE_Y"
@@ -90,12 +90,12 @@ There are 3 Classes In Oz-Engine :
 ## Canvas
 
 Canvas object can be used to store sprite informations
-It has one parameter "VOID" which what empty cells look like.
+It has one parameter "void" which what empty cells look like.
 
 Here is an example :
 ```python
 
-canvas_fruit = oz.Canvas("o") # "VOID" here is "o"
+canvas_fruit = oz.Canvas("o") # "void" here is "o"
 
 apple = oz.Sprite(canvas_fruit , "🍎" , [0 , 0] , "apple")
 banana = oz.Sprite(canvas_fruit , "🍌" , [1 , 0] , "banana")
@@ -120,9 +120,9 @@ Nothing particular here just setting up
 the given parameters and instantiating variable that are needed.
 
 ```python
- def __init__(self, VOID):
+ def __init__(self, void):
     ''' Characters that fills the canvas when nothing is rendered on a tile. '''
-    self.VOID = VOID
+    self.void = void
     '''List that contains every distance of each sprite '''
     self.distance_tree = []
     '''List that contains every reference of each sprite '''
@@ -132,7 +132,7 @@ the given parameters and instantiating variable that are needed.
     '''List that contains every name of each sprite '''
     self.sprite_names = []
     '''Dictionary that has a sprite reference as a key and the corresponding name as a value'''
-    self.sprite_names_dict = {}
+    self.sprite_name_dict = {}
     '''Dictionary that has a sprite reference as a key and the corresponding position as a value'''
     self.sprite_position_dict = {}
     '''Dictionary that has a sprite reference as a key and the corresponding group as a value'''
@@ -151,7 +151,7 @@ It works with a dictionnary that stores names as keys a reference as values.
     returns reference to sprite that owns the given name
     """
 
-    return self.sprite_names_dict[name]
+    return self.sprite_name_dict[name]
 ```
 
 ## call_group 📢
@@ -250,7 +250,7 @@ and here we register info to the __canvas_owner__.
     # register infos in "canvas_owner" :
     canvas_owner.sprite_tree.append(self) # register reference
     canvas_owner.sprite_names.append(self.name) # register name
-    canvas_owner.sprite_names_dict[self.name] = self # register name as key and reference as value 
+    canvas_owner.sprite_name_dict[self.name] = self # register name as key and reference as value 
     canvas_owner.sprite_position_dict[self] = position # register reference as key and position as value
     
     if not (group in canvas_owner.sprite_group_dict):
@@ -272,7 +272,7 @@ it just deletes things that we registered earlier in the __\_\_init\_\___
 ```python
   def destroy(self):
 
-    del self.canvas_owner.sprite_names_dict[self.name]
+    del self.canvas_owner.sprite_name_dict[self.name]
     del self.canvas_owner.sprite_position_dict[self]
 
     #remove self from key that contain every sprite in group
@@ -300,7 +300,7 @@ it changes every time the __old__ name was used by the __new__ one given.
     allows to change the name of a sprite, to "rename" it.
     """
 
-    del self.canvas_owner.sprite_names_dict[self.name]
+    del self.canvas_owner.sprite_name_dict[self.name]
 
     if new_name in self.canvas_owner.sprite_names:
       # change new_name with object id() if name already taken
@@ -311,7 +311,7 @@ it changes every time the __old__ name was used by the __new__ one given.
     INDEX = self.canvas_owner.sprite_names.index(self.name)
     self.canvas_owner.sprite_names[INDEX] = new_name
     self.name = new_name
-    self.canvas_owner.sprite_names_dict[new_name] = self
+    self.canvas_owner.sprite_name_dict[new_name] = self
 ```
 
 ## get_colliding_objects 💥
@@ -390,12 +390,12 @@ We check if all groups are in __groups_colliding__.
 
 ```
 
-## update_distance
+## update_layer
 
-__update_distance__ is used to well update distance of your sprite
+__update_layer__ is used to well update distance of your sprite
 it's used in every __moving__ / __position__ functions
 ```python
-  def update_distance(self):
+  def update_layer(self):
     """
 
         update the dictionary : "sprite_position_dict" of "canvas_owner"
@@ -419,7 +419,7 @@ but here how one of then works:
 
     self.position[0] += x_val
     self.position[1] += y_val
-    self.update_distance()
+    self.update_layer()
 ```
 
 # Camera 🎥
