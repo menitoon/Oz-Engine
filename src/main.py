@@ -228,7 +228,7 @@ class Sprite:
 
 
 
-  def destroy(self):
+  def kill(self):
 
     del self.canvas_owner.sprite_names_dict[self.name]
     del self.canvas_owner.sprite_position_dict[self]
@@ -249,9 +249,20 @@ class Sprite:
     #delete render cache in all cameras that are linked
     for todo_camera in self.canvas_owner.camera_tree:
 
+      if todo_camera.last_sprite_cache_dict[self] != {}:
+        sprite_path = todo_camera.last_sprite_cache_dict[self]
+        sprite_row_list = todo_camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
+        sprite_row_list.remove(self)
 
-      pass
-      #del todo_camera.row_render_dict
+        if sprite_row_list == []:
+          # if no sprite is rendered at this position in this line remove the position of the line from "row_render_dict"
+          del camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
+
+          # if no sprite is rendered at this line remove the line entirely
+          if camera.row_render_dict[sprite_path["y"]] == {}:
+            del camera.row_render_dict[sprite_path["y"]]
+
+      del todo_camera.last_sprite_cache_dict[self]
 
 
     del self
@@ -511,12 +522,32 @@ class Camera:
     self.position["y"] += -position["y"]
     self.update_all_sprite_render_cache()
 
-  def set_size(self, size: dict):
-    self.size = size
+  def set_size(self, new_size: dict):
+    self.size = new_size
     self.update_all_sprite_render_cache()
 
-  def destroy(self):
+  def set_x_size(self, value : int):
+    self.size["x"] = value
+    self.update_all_sprite_render_cache()
 
+  def set_y_size(self, value : int):
+    self.size["y"] = value
+    self.update_all_sprite_render_cache()
+
+  def change_x_size(self, value : int):
+    self.size["x"] += value
+    self.update_all_sprite_render_cache()
+
+  def change_y_size(self, value : int):
+    self.size["y"] += value
+    self.update_all_sprite_render_cache()
+
+  def change_size(self, x : int,y : int):
+    self.size["x"] += x
+    self.size["y"] += y
+    self.update_all_sprite_render_cache()
+
+  def kill(self):
     self.canvas_owner.camera_tree.remove(self)
     del self.canvas_owner.camera_name_dict[self.name]
     del self
@@ -539,7 +570,7 @@ def critic_test(size, amount, time_mid, is_print=True):
 
   start_perf_counter = time.monotonic_ns()
 
-  while ((time.monotonic_ns() - start_perf_counter) / 100000000) < time_mid:
+  while ((time.monotonic_ns() - start_perf_counter) / 1000000000) < time_mid:
 
     if ((time.monotonic_ns() - start) / 100000000) > 1.0:
       start = time.monotonic_ns()
@@ -547,7 +578,7 @@ def critic_test(size, amount, time_mid, is_print=True):
       fps = 0
 
     collision_start = time.monotonic_ns()
-    #s1.get_colliding_objects()
+    s1.get_colliding_objects()
     mid_collision_time.append((time.monotonic_ns() - collision_start))
     camera.change_x(1)
     camera.render()
@@ -561,5 +592,7 @@ def critic_test(size, amount, time_mid, is_print=True):
     print(f"collision time {mid_collision_time / 100000000}")
 
 
-
-critic_test(100 , 100 , 10)
+canvas = Canvas("-")
+camera = Camera(canvas, {"x" : 10, "y" : 10}, {"x" : 0, "y" : 0}, "cam")
+s1 = Sprite(canvas, "s", {"x" : 0, "y" : 0}, "s1")
+s2 = Sprite(canvas, "m", {"x" : 0, "y" : 0}, "s2")
