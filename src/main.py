@@ -135,40 +135,42 @@ class Sprite:
 
         canvas_owner.sprite_group_dict[group].append(self)
 
-        self.update_position_to_render_cache()
+        self.update_all_position_to_render_cache()
 
-    def update_position_to_render_cache(self):
+    def add_position_to_render_cache(self , camera):
+        # update for every camera if is in render cache
+
+        if camera.is_renderable(self.position):
+
+            render_position = {"x": self.position["x"] - camera.position["x"],
+                               "y": self.position["y"] - camera.position["y"]}
+            # if can be rendered
+            # update key
+            camera.valid_sprite_cache[self] = render_position
+
+            # create a list placement if row not existing
+            if camera.row_render.get(render_position["y"]) == None:
+                camera.row_render[render_position["y"]] = [[], []]
+
+            camera.row_render[render_position["y"]][0].append(render_position["x"])
+            camera.row_render[render_position["y"]][1].append(self)
+
+
+    def update_all_position_to_render_cache(self):
 
         for todo_camera in self.canvas_owner.camera_tree:
-
-            #update for every camera if is in render cache
-
-
-            if todo_camera.is_renderable(self.position):
+            self.add_position_to_render_cache(todo_camera)
 
 
+    def remove_position_to_render_cache(self , camera):
 
-                render_position = {"x": self.position["x"] - todo_camera.position["x"],
-                                   "y": self.position["y"] - todo_camera.position["y"]}
-                # if can be rendered
-                #update key
-                todo_camera.valid_sprite_cache[self] = render_position
+        index = camera.row_render[self.position["y"]][1].index(self) #gets the index of your sprite reference
+        del camera.row_render[self.position["y"]][0][index]
+        del camera.row_render[self.position["y"]][1][index]
 
-                #create a list placement if row not existing
-                if todo_camera.row_render.get(render_position["y"]) == None:
-                    todo_camera.row_render[render_position["y"]] = [ [] , [] ]
-
-                todo_camera.row_render[render_position["y"]][0].append(self.position["x"]) #x
-                todo_camera.row_render[render_position["y"]][1].append(self)               #reference
-
-
-
-    def remove_position_to_render_cache(self):
+    def remove_all_position_to_render_cache(self):
         for todo_camera in self.canvas_owner.camera_tree:
-
-            index = todo_camera.row_render[self.position["y"]][1].index(self) #gets the index of your sprite reference
-            del todo_camera.row_render[self.position["y"]][0][index]
-            del todo_camera.row_render[self.position["y"]][1][index]
+            self.remove_position_to_render_cache(todo_camera)
 
     def destroy(self):
 
@@ -186,6 +188,8 @@ class Sprite:
             # delete group if no one is in it.
             del self.canvas_owner.sprite_group_dict[self.group]
             self.canvas_owner.group_tree.remove(self.group)
+
+        self.remove_all_position_to_render_cache()
 
         del self
 
@@ -415,6 +419,53 @@ class Camera:
         return canvas
 
 
+    def update_all_sprite_render_cache(self):
+        for todo_sprite in self.canvas_owner.sprite_tree:
+            todo_sprite.remove_position_to_render_cache(self)
+            todo_sprite.add_position_to_render_cache(self)
+
+    def set_position(self , position : dict):
+        self.position["x"] = -position["x"]
+        self.position["y"] = -position["y"]
+        self.update_all_sprite_render_cache()
+
+
+    def set_x(self , value : int):
+        self.position["x"] = -value
+        self.update_all_sprite_render_cache()
+
+    def set_y(self , value : int):
+        self.position["y"] = -value
+        self.update_all_sprite_render_cache()
+
+    def change_y(self , value : int):
+        self.position["y"] += -value
+        self.update_all_sprite_render_cache()
+
+    def change_x(self , value : int):
+        self.position["x"] += -value
+        self.update_all_sprite_render_cache()
+
+    def change_position(self , position : dict):
+        self.position["x"] += -position["x"]
+        self.position["y"] += -position["y"]
+        self.update_all_sprite_render_cache()
+
+    def set_size(self, size : dict):
+        self.size = size
+        self.update_all_sprite_render_cache()
+
+    def destroy(self):
+
+        self.canvas_owner.camera_tree.remove(self)
+        del self.canvas_owner.camera_name_dict[self.name]
+        del self
+
+
+
+
+
+
 def critic_test(size, amount, time_mid, is_print=True):
 
   canvas = Canvas("0")
@@ -452,5 +503,13 @@ def critic_test(size, amount, time_mid, is_print=True):
     print(f"{mid_fps} FPS")
     print(f"collision time {mid_collision_time / 100000000}")
 
+canvas = Canvas("0")
+camera = Camera(canvas , {"x" : 5 , "y" : 5}, {"x":0 , "y":0}, "cam")
 
+s1 = Sprite(canvas , "s" , {"x" : 0 , "y":1}, "s1")
 
+print(camera.render())
+
+camera.set_size({"x" : 2 , "y" : 2})
+
+print(camera.render())
