@@ -2,6 +2,7 @@ import math
 import time
 
 
+
 def warn(text: str):
     print(f"\033[93m!{text} \u001b[0m  ")
 
@@ -97,6 +98,9 @@ class Sprite:
             name: str,
             group=None,
     ):
+        self.register_info(canvas_owner,char, position,name, group)
+
+    def register_info(self, canvas_owner : object, char : str, position : dict, name : str, group=None):
         '''Character that represents the sprite when rendered.'''
         self.char = char
         '''dict that has two element "x" and "y" it tells where to render the sprite.'''
@@ -542,6 +546,28 @@ class Camera:
         del self
 
 
+
+class Structure(Sprite):
+
+    def __init__(self, canvas_owner, structure, position, name, group=None):
+
+        todo = 0
+
+        lines = structure.readlines()
+
+
+        for y in range(len(lines)):
+
+            line_length = len(lines[todo])
+            todo += 1
+            for x in range(line_length):
+                char = lines[y][x]
+
+                if char != "\n":
+                    structure_sprite = Sprite(canvas_owner, char, {"x" : x, "y" : y}, "structure")
+
+
+
 def critic_test(size, amount, time_mid, is_print=True):
     canvas = Canvas("0")
     camera = Camera(canvas, {"x": size, "y": size}, {"x": 0, "y": 0}, "camera")
@@ -579,3 +605,12 @@ def critic_test(size, amount, time_mid, is_print=True):
         print(f"collision time {mid_collision_time / 100000000}")
 
 
+structure = open("structure.txt" , "r")
+
+canvas = Canvas("0")
+camera = Camera(canvas, {"x" : 15, "y" : 15}, {"x" : 0, "y" : 0}, "cam")
+
+
+struc = Structure(canvas, structure, {"x" : 0, "y" : 0}, "struc")
+
+print(camera.render())
