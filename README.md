@@ -31,7 +31,7 @@ It can be used to make games in:
 * Structure Support (images made of multiple characters)
 
 (You can either play in the **console** or on a **matrix-led screen**) 
-![](https://cdn.discordapp.com/attachments/958679110316617748/1075516653032460388/2explanation.png)
+![](https://cdn.discordapp.com/attachments/958679110316617748/1079378617328468119/2explanation.png)
 
 ## Startup
 
