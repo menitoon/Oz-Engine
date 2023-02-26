@@ -28,6 +28,7 @@ It can be used to make games in:
 * Camera Support 
 * Custom Sprite Type 
 * Flexible Render Target
+* Structure Support (images made of multiple characters)
 
 (You can either play in the **console** or on a **matrix-led screen**) 
 ![](https://cdn.discordapp.com/attachments/958679110316617748/1075516653032460388/2explanation.png)
