@@ -11,7 +11,7 @@ class Canvas:
     Object that can store sprites in it to be rendered
     """
 
-    __slots__ = "void", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_position_dict", "sprite_group_dict", "group_tree", "camera_name_dict", "camera_tree"
+    __slots__ = "void", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_position_dict", "sprite_group_dict", "group_tree", "camera_name_dict", "camera_tree", "structure_tree" ,"structure_dict"
 
     def __init__(self, void):
         ''' Characters that fills the canvas when nothing is rendered on a tile. '''
@@ -28,10 +28,14 @@ class Canvas:
         self.sprite_position_dict = {}
         '''Dictionary that has a sprite reference as a key and the corresponding group as a value'''
         self.sprite_group_dict = {}
-        '''List that contains every reference of every Camera link to the canvas in question'''
+        '''List that contains every reference of every Camera that are linked to the canvas in question'''
         self.camera_tree = []
         '''Dictionary that has a name as a key and the corresponding Camera reference as a value'''
         self.camera_name_dict = {}
+        '''List that contains every reference of every Structure that are linked to the canvas in question '''
+        self.structure_tree = []
+        '''Dictionary that has a name as a key and the corresponding Structure reference as a value'''
+        self.structure_dict = {}
 
     def get_elements(self, position: list, canvas: object):
         """
@@ -81,6 +85,8 @@ class Canvas:
             func = getattr(todo_sprite, method_to_call)
             func(*args)
 
+    def get_structure(self, name):
+        return self.structure_dict[name]
 
 class Sprite:
     """
@@ -140,12 +146,11 @@ class Sprite:
         for todo_camera in self.canvas_owner.camera_tree:
             # updates yourself to the render cache of camera
 
-            render_position = {
-                "x": self.position["x"] - todo_camera.position["x"],
-                "y": self.position["y"] - todo_camera.position["y"]
-            }
+            render_position = self.get_render_position(todo_camera)
+
 
             if todo_camera.is_renderable(render_position):
+
 
                 # if can be rendered
                 # update key
@@ -167,6 +172,7 @@ class Sprite:
     def update_camera_render_cache(self, camera: object):
 
         render_position = self.get_render_position(camera)
+
 
         if camera.is_renderable(render_position):
 
@@ -405,6 +411,7 @@ class Camera:
             so :  {"y" : {"x" : sprite_reference_here} '''
         self.row_render_dict = {}
 
+
         if size == [0, 0]:
             warn(
                 f''' size of camera : "{name}" isn't defined so it will most likely not work.\n please define a valid size.'''
@@ -415,11 +422,10 @@ class Camera:
 
     def is_renderable(self, position):
 
-        render_position = {"x": position["x"] - self.position["x"], "y": position["y"] - self.position["y"]}
-        # sprite_position - camera_position
 
-        return render_position["x"] >= 0 and render_position["x"] < self.size["x"] and render_position[
-            "y"] >= 0 and render_position["y"] < self.size["y"]
+
+        return position["x"] >= 0 and position["x"] < self.size["x"] and position[
+            "y"] >= 0 and position["y"] < self.size["y"]
 
     def render(self, is_string=True):
         """
@@ -557,11 +563,17 @@ class Structure(Sprite):
         self.position = position
         self.group = group
         self.is_space_empty = is_space_empty
+        self.name = name
 
         self.structure = structure
         self.structure_sprite_tree = []
         self.is_space_empty = is_space_empty
 
+        if name in canvas_owner.structure_tree:
+            self.name = f"@{name}{str(id(self))}"
+
+        canvas_owner.structure_tree.append(self.name)
+        canvas_owner.structure_dict[self.name] = self
 
 
         todo = 0
@@ -644,7 +656,7 @@ class StructureSprite(Sprite):
 
         def get_render_position(self, camera):
 
-            return {"x" : self.position["x"] + self.structure_owner.position["x"] + camera.position["x"], "y" : self.position["y"] + self.structure_owner.position["y"] + camera.position["y"]}
+            return {"x" : self.position["x"]  + camera.position["x"] + self.structure_owner.position["x"], "y" : self.position["y"] + camera.position["y"] + self.structure_owner.position["y"] }
 
 def critic_test(size, amount, time_mid, is_print=True):
     canvas = Canvas("0")
@@ -681,6 +693,5 @@ def critic_test(size, amount, time_mid, is_print=True):
         mid_collision_time = sum(mid_collision_time) / len(mid_collision_time)
         print(f"{mid_fps} FPS")
         print(f"collision time {mid_collision_time / 100000000}")
-
 
 
