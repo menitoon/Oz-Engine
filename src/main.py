@@ -246,20 +246,24 @@ class Sprite:
         # delete render cache in all cameras that are linked
         for todo_camera in self.canvas_owner.camera_tree:
 
-            if todo_camera.last_sprite_cache_dict[self] != {}:
-                sprite_path = todo_camera.last_sprite_cache_dict[self]
-                sprite_row_list = todo_camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
-                sprite_row_list.remove(self)
 
-                if sprite_row_list == []:
-                    # if no sprite is rendered at this position in this line remove the position of the line from "row_render_dict"
-                    del camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
+            if self in todo_camera.last_sprite_cache_dict:
 
-                    # if no sprite is rendered at this line remove the line entirely
-                    if camera.row_render_dict[sprite_path["y"]] == {}:
-                        del camera.row_render_dict[sprite_path["y"]]
 
-            del todo_camera.last_sprite_cache_dict[self]
+                if todo_camera.last_sprite_cache_dict[self] != {}:
+                    sprite_path = todo_camera.last_sprite_cache_dict[self]
+                    sprite_row_list = todo_camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
+                    sprite_row_list.remove(self)
+
+                    if sprite_row_list == []:
+                        # if no sprite is rendered at this position in this line remove the position of the line from "row_render_dict"
+                        del todo_camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
+
+                        # if no sprite is rendered at this line remove the line entirely
+                        if todo_camera.row_render_dict[sprite_path["y"]] == {}:
+                            del todo_camera.row_render_dict[sprite_path["y"]]
+
+                del todo_camera.last_sprite_cache_dict[self]
 
         del self
 
@@ -421,7 +425,6 @@ class Camera:
         self.canvas_owner.camera_name_dict[self.name] = self
 
     def is_renderable(self, position):
-
 
 
         return position["x"] >= 0 and position["x"] < self.size["x"] and position[
@@ -693,5 +696,6 @@ def critic_test(size, amount, time_mid, is_print=True):
         mid_collision_time = sum(mid_collision_time) / len(mid_collision_time)
         print(f"{mid_fps} FPS")
         print(f"collision time {mid_collision_time / 100000000}")
+
 
 
