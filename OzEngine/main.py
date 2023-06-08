@@ -11,17 +11,17 @@ class Canvas:
     Object that can store sprites in it to be rendered
     """
 
-    __slots__ = "void", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_position_dict", "sprite_group_dict", "group_tree", "camera_name_dict", "camera_tree", "structure_tree" ,"structure_dict"
+    __slots__ = "void", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_position_dict", "sprite_group_dict", "group_tree", "camera_name_dict", "camera_tree", "structure_tree", "structure_dict"
 
     def __init__(self, void):
         ''' Characters that fills the canvas when nothing is rendered on a tile. '''
         self.void = void
         '''List that contains every reference of each sprite that is linked to the canvas in question '''
-        self.sprite_tree = []
+        self.sprite_tree = set()
         '''List that contains every groups that exists'''
-        self.group_tree = []
+        self.group_tree = set()
         '''List that contains every name of each sprite that is linked to the canvas in question '''
-        self.sprite_names = []
+        self.sprite_names = set()
         '''Dictionary that has a name as a key and the corresponding Sprite reference as a value'''
         self.sprite_names_dict = {}
         '''Dictionary that has a sprite reference as a key and the corresponding position as a value'''
@@ -29,11 +29,11 @@ class Canvas:
         '''Dictionary that has a sprite reference as a key and the corresponding group as a value'''
         self.sprite_group_dict = {}
         '''List that contains every reference of every Camera that are linked to the canvas in question'''
-        self.camera_tree = []
+        self.camera_tree = set()
         '''Dictionary that has a name as a key and the corresponding Camera reference as a value'''
         self.camera_name_dict = {}
         '''List that contains every reference of every Structure that are linked to the canvas in question '''
-        self.structure_tree = []
+        self.structure_tree = set()
         '''Dictionary that has a name as a key and the corresponding Structure reference as a value'''
         self.structure_dict = {}
 
@@ -88,6 +88,7 @@ class Canvas:
     def get_structure(self, name):
         return self.structure_dict[name]
 
+
 class Sprite:
     """
     Object that can be used to fill the canvas
@@ -107,7 +108,6 @@ class Sprite:
 
     def register_info(self, canvas_owner: object, char: str, position: dict, name: str, group=None):
 
-
         '''Character that represents the sprite when rendered.'''
         self.char = char
         '''dict that has two element "x" and "y" it tells where to render the sprite.'''
@@ -126,8 +126,8 @@ class Sprite:
             self.name = name + f"@{str(id(self))}"
 
         # register infos in "canvas_owner" :
-        canvas_owner.sprite_tree.append(self)
-        canvas_owner.sprite_names.append(self.name)
+        canvas_owner.sprite_tree.add(self)
+        canvas_owner.sprite_names.add(self.name)
         canvas_owner.sprite_names_dict[self.name] = self
         canvas_owner.sprite_position_dict[self] = position
 
@@ -135,22 +135,19 @@ class Sprite:
             # if group is new then add to "group_tree" and create new key
             # location for "sprite_group_dict".
             canvas_owner.sprite_group_dict[group] = []
-            canvas_owner.group_tree.append(group)
+            canvas_owner.group_tree.add(group)
 
         canvas_owner.sprite_group_dict[group].append(self)
         self.define_cameras_render_cache()
 
     def define_cameras_render_cache(self):
 
-
         for todo_camera in self.canvas_owner.camera_tree:
             # updates yourself to the render cache of camera
 
             render_position = self.get_render_position(todo_camera)
 
-
             if todo_camera.is_renderable(render_position):
-
 
                 # if can be rendered
                 # update key
@@ -172,7 +169,6 @@ class Sprite:
     def update_camera_render_cache(self, camera: object):
 
         render_position = self.get_render_position(camera)
-
 
         if camera.is_renderable(render_position):
 
@@ -196,7 +192,6 @@ class Sprite:
                     # if no sprite is rendered at this line remove the line entirely
                     if camera.row_render_dict[sprite_path["y"]] == {}:
                         del camera.row_render_dict[sprite_path["y"]]
-
 
             if camera.row_render_dict.get(render_position["y"]) == None:
                 camera.row_render_dict[render_position["y"]] = {}
@@ -246,9 +241,7 @@ class Sprite:
         # delete render cache in all cameras that are linked
         for todo_camera in self.canvas_owner.camera_tree:
 
-
             if self in todo_camera.last_sprite_cache_dict:
-
 
                 if todo_camera.last_sprite_cache_dict[self] != {}:
                     sprite_path = todo_camera.last_sprite_cache_dict[self]
@@ -386,10 +379,9 @@ class Sprite:
         self.position["y"] += y_val
         self.update_all_cameras_render_cache()
 
-
     def get_render_position(self, camera):
 
-        return {"x" : self.position["x"] + camera.position["x"], "y" : self.position["y"] + camera.position["y"]}
+        return {"x": self.position["x"] + camera.position["x"], "y": self.position["y"] + camera.position["y"]}
 
 
 class Camera:
@@ -415,17 +407,15 @@ class Camera:
             so :  {"y" : {"x" : sprite_reference_here} '''
         self.row_render_dict = {}
 
-
         if size == [0, 0]:
             warn(
                 f''' size of camera : "{name}" isn't defined so it will most likely not work.\n please define a valid size.'''
             )
 
-        self.canvas_owner.camera_tree.append(self)
+        self.canvas_owner.camera_tree.add(self)
         self.canvas_owner.camera_name_dict[self.name] = self
 
     def is_renderable(self, position):
-
 
         return position["x"] >= 0 and position["x"] < self.size["x"] and position[
             "y"] >= 0 and position["y"] < self.size["y"]
@@ -448,12 +438,15 @@ class Camera:
             # nothing to render
             canvas = line * self.size["y"]
             return canvas
+        else:
+            last_row = rows[0]
 
-        canvas += line * (rows[0] - 1)  # adds line before the first one
+        canvas += line * (rows[0])  # adds line before the first one
 
         for todo_row in rows:
 
             number_to_fill_up = todo_row - 1 - last_row
+
             if number_to_fill_up > 0:
                 canvas += line * number_to_fill_up
             del number_to_fill_up
@@ -463,25 +456,31 @@ class Camera:
             x_to_render_line.sort()
             render_line = ""
             sprites_to_render = len(x_to_render_line)
+            items_rendered = 0  # also includes void
+
+            # todo_line is the character position that gets rendered
 
             for todo_line in x_to_render_line:
 
                 # fill up with "void" until something to render
-                number_to_fill_up = abs((len(render_line) - todo_line))
+                number_to_fill_up = (todo_line - items_rendered)
                 if number_to_fill_up > 0:
                     # if there is something that can be filled up
                     render_line += self.canvas_owner.void * number_to_fill_up
+                    items_rendered += number_to_fill_up
 
                 del number_to_fill_up
 
                 row_dict = self.row_render_dict[todo_row]
                 render_line += row_dict[todo_line][0].char
+                items_rendered += 1
                 sprites_to_render -= 1
 
                 if sprites_to_render == 0:
                     # if nothing else to render on this line we fill up the line with "void"
-                    number_to_fill_up = (self.size["x"] - len(render_line))
+                    number_to_fill_up = self.size["x"] - (todo_line + 1)
                     render_line += self.canvas_owner.void * number_to_fill_up + "\n"
+                    items_rendered += number_to_fill_up
                     canvas += render_line
                     del number_to_fill_up
                     break
@@ -557,10 +556,10 @@ class Camera:
 
 
 class Structure(Sprite):
-
     __slots__ = "canvas_owner", "structure", "position", "name", "group", "is_space_empty", "structure_sprite_tree"
 
-    def __init__(self, canvas_owner : object, structure : io.TextIOWrapper , position, name, group=None, is_space_empty=True):
+    def __init__(self, canvas_owner: object, structure: io.TextIOWrapper, position, name, group=None,
+                 is_space_empty=True):
 
         self.canvas_owner = canvas_owner
         self.position = position
@@ -575,9 +574,8 @@ class Structure(Sprite):
         if name in canvas_owner.structure_tree:
             self.name = f"@{name}{str(id(self))}"
 
-        canvas_owner.structure_tree.append(self.name)
+        canvas_owner.structure_tree.add(self.name)
         canvas_owner.structure_dict[self.name] = self
-
 
         todo = 0
         lines = structure.readlines()
@@ -589,14 +587,10 @@ class Structure(Sprite):
             for x in range(line_length):
                 char = lines[y][x]
 
-
                 if char != "\n":
 
-                    if not (is_space_empty == True  and char == " "):
-
-                        structure_sprite = StructureSprite(canvas_owner, char, {"x" : x, "y" : y}, "struc", self)
-
-
+                    if not (is_space_empty == True and char == " "):
+                        structure_sprite = StructureSprite(canvas_owner, char, {"x": x, "y": y}, "struc", self)
 
     def update_all_sprite_child(self):
         for todo_child_sprite in self.structure_sprite_tree:
@@ -606,11 +600,9 @@ class Structure(Sprite):
         self.position["x"] = value
         self.update_all_sprite_child()
 
-
     def change_x(self, value: int):
         self.position["x"] += value
         self.update_all_sprite_child()
-
 
     def set_y(self, value: int):
         self.position["y"] = value
@@ -629,37 +621,35 @@ class Structure(Sprite):
         self.position["y"] += y_val
         self.update_all_cameras_render_cache()
 
-
     def kill(self):
 
         for todo_child_sprite in self.structure_sprite_tree:
-
             todo_child_sprite.kill()
 
         del self
+
+
 class StructureSprite(Sprite):
+    __slots__ = "canvas_owner", "char", "position", "name", "group", "structure_owner"
 
+    def __init__(
+            self,
+            canvas_owner: object,
+            char: str,
+            position: dict,
+            name: str,
+            structure_owner: object,
+            group=None
 
-        __slots__ = "canvas_owner", "char", "position", "name", "group" , "structure_owner"
+    ):
+        self.structure_owner = structure_owner
+        self.register_info(canvas_owner, char, position, name, group)
+        self.structure_owner.structure_sprite_tree.add(self)
 
-        def __init__(
-                self,
-                canvas_owner: object,
-                char: str,
-                position: dict,
-                name: str,
-                structure_owner: object,
-                group=None
+    def get_render_position(self, camera):
+        return {"x": self.position["x"] + camera.position["x"] + self.structure_owner.position["x"],
+                "y": self.position["y"] + camera.position["y"] + self.structure_owner.position["y"]}
 
-        ):
-            self.structure_owner = structure_owner
-            self.register_info(canvas_owner, char, position, name, group)
-            self.structure_owner.structure_sprite_tree.append(self)
-
-
-        def get_render_position(self, camera):
-
-            return {"x" : self.position["x"]  + camera.position["x"] + self.structure_owner.position["x"], "y" : self.position["y"] + camera.position["y"] + self.structure_owner.position["y"] }
 
 def critic_test(size, amount, time_mid, is_print=True):
     canvas = Canvas("0")
