@@ -13,7 +13,7 @@
 It can be used to make games in:
 * **Terminal**  
 * **Discord** 
-* [**Microbit**](https://github.com/menitoon/Oz-Engine-Microbit-version)
+* **Microbit**
 * **Any matrix-led screen**
 
 
@@ -21,7 +21,7 @@ It can be used to make games in:
 ![](https://thumbs.gfycat.com/AcclaimedAlienatedGiraffe-size_restricted.gif)  
 ![](https://cdn.discordapp.com/attachments/1075772045142528060/1113350382400319508/2023-05-31_07-38-59.gif)
 
-_Games like **[Connect-4](https://github.com/menitoon/Connect-4-with-Oz-Engine), [Snake](https://github.com/menitoon/Snake-Microbit-with-Oz-Engine) and [Conway's Game of Life](https://github.com/menitoon/Conway-s-Game-of-Life-with-Oz-Engine)** have been made in Oz-Engine._
+_Games like **[Connect-4](https://github.com/menitoon/Connect-4-with-Oz-Engine),  Snake and [Conway's Game of Life](https://github.com/menitoon/Conway-s-Game-of-Life-with-Oz-Engine)** have been made in Oz-Engine._
 
 ## Features
 
