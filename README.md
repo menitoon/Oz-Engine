@@ -44,7 +44,7 @@ In **CommandLine** type this:
  
  Then **import** it at the top of your project like so:
  ```python 
- import OzEngine as oz 
+ import Oz_Engine as oz 
  ```
 
 
