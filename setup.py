@@ -1,10 +1,10 @@
 from setuptools import setup
 
 setup(
-    name='Oz-Engine',
-    version='1.3.0.1',
+    name='Oz_Engine',
+    version='1.3.0.2',
     description='A library for making graphic text-based games in the console',
-    packages=['Oz-Engine'],
+    packages=['Oz_Engine'],
     install_requires=[],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

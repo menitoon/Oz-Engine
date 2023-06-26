@@ -1,8 +1,8 @@
 LICENSE
 README.md
 setup.py
-Oz-Engine/__init__.py
-Oz-Engine/main.py
+Oz_Engine/__init__.py
+Oz_Engine/main.py
 Oz_Engine.egg-info/PKG-INFO
 Oz_Engine.egg-info/SOURCES.txt
 Oz_Engine.egg-info/dependency_links.txt
