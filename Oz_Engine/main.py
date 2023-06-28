@@ -313,16 +313,14 @@ class Sprite:
             del self.canvas_owner.sprite_group_dict[self.group]
             self.canvas_owner.group_tree.remove(self.group)
 
-        # delete render cache in all cameras that are linked
-        for todo_camera in self.canvas_owner.camera_tree:
+        if self.canvas_owner.last_render_cache[self] != {}:
+            sprite_path = self.canvas_owner.last_render_cache[self]
+        del self.canvas_owner.last_sprite_cache_dict[self]
 
-            if self in todo_camera.last_sprite_cache_dict:
-
-                if todo_camera.last_sprite_cache_dict[self] != {}:
-                    sprite_path = todo_camera.last_sprite_cache_dict[self]
-                    del todo_camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
-
-                del todo_camera.last_sprite_cache_dict[self]
+        for for_camera in self.canvas_owner.camera_tree:
+            del for_camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
+            if for_camera.row_render_dict[sprite_path["y"]] == {}:
+                del self.canvas_owner.last_sprite_cache_dict[self]
 
         self.update_behind(self.position)
 
@@ -827,16 +825,3 @@ def critic_test(size, amount, time_mid, is_print=True):
 
 
 
-cs = Canvas("-")
-
-cam = Camera(cs, {"x" : 10, "y" : 2}, {"x" : 0, "y": 0}, "cam")
-s1 = Sprite(cs, "s", {"x" : 0, "y" : 1}, "s1")
-s2 = Sprite(cs, "M", {"x" : 0, "y" : 0}, "s1")
-
-
-
-
-cam.change_x(-1)
-
-
-print(cam.render())
