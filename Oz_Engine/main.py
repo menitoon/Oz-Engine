@@ -204,7 +204,7 @@ class Sprite:
             # remove sprite reference
             # to update reference
             # only if was rendered before
-            if camera.last_sprite_cache_dict.get(self) != None:
+            if not camera.last_sprite_cache_dict.get(self) is None:
 
                 sprite_path = camera.last_sprite_cache_dict[self]
 
@@ -219,10 +219,10 @@ class Sprite:
                     if camera.row_render_dict[sprite_path["y"]] == {}:
                         del camera.row_render_dict[sprite_path["y"]]
 
-            if camera.row_render_dict.get(render_position["y"]) == None:
+            if camera.row_render_dict.get(render_position["y"]) is None:
                 camera.row_render_dict[render_position["y"]] = {}
 
-            if camera.row_render_dict[render_position["y"]].get(render_position["x"]) == None:
+            if camera.row_render_dict[render_position["y"]].get(render_position["x"]) is None:
                 camera.row_render_dict[render_position["y"]][render_position["x"]] = []
                 camera.row_render_dict[render_position["y"]][render_position["x"]].append(self)
             else:
@@ -271,10 +271,11 @@ class Sprite:
 
             if self in todo_camera.last_sprite_cache_dict:
 
-                if todo_camera.last_sprite_cache_dict[self] != {}:
+                if not todo_camera.last_sprite_cache_dict[self] is None:
                     sprite_path = todo_camera.last_sprite_cache_dict[self]
                     sprite_row_list = todo_camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
                     sprite_row_list.remove(self)
+                
 
                     if sprite_row_list == []:
                         # if no sprite is rendered at this position in this line remove the position of the line from "row_render_dict"
