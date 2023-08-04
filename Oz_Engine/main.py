@@ -11,7 +11,8 @@ class Canvas:
     Object that can store sprites in it to be rendered
     """
 
-    __slots__ = "void", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_position_dict", "sprite_group_dict", "group_tree", "camera_name_dict", "camera_tree", "structure_tree", "structure_dict"
+    __slots__ = "void", "sprite_names", "sprite_names_dict", "sprite_tree", "sprite_position_dict", "sprite_group_dict", "group_tree", "camera_name_dict", "camera_tree", "structure_tree", "structure_dict", \
+        "position_dict"
 
     def __init__(self, void):
         ''' Characters that fills the canvas when nothing is rendered on a tile. '''
@@ -36,6 +37,8 @@ class Canvas:
         self.structure_tree = set()
         '''Dictionary that has a name as a key and the corresponding Structure reference as a value'''
         self.structure_dict = {}
+        '''Dictionary that has a position as a key and a list containing every sprite at the position'''
+        self.position_dict = {}
 
     def get_elements(self, position: list, canvas: object):
         """
@@ -144,7 +147,23 @@ class Sprite:
         canvas_owner.sprite_group_dict[group].append(self)
         self.define_cameras_render_cache()
 
+        position_tuple = (self.position["x"], self.position["y"])
 
+        if self.canvas_owner.position_dict.get(position_tuple) is None:
+            self.canvas_owner.position_dict[position_tuple] = set()
+        self.canvas_owner.position_dict[position_tuple].add(self)
+
+    def update_position(self, new_position):
+        old_position_tuple = (self.position["x"], self.position["y"])
+        self.canvas_owner.position_dict[old_position_tuple].remove(self)
+        if self.canvas_owner.position_dict[old_position_tuple] == []:
+            del self.canvas_owner.position_dict[old_position_tuple]
+
+        new_position_tuple = (new_position["x"], new_position["y"])
+
+        if self.canvas_owner.position_dict.get(new_position_tuple) is None:
+            self.canvas_owner.position_dict[new_position_tuple] = set()
+        self.canvas_owner.position_dict[new_position_tuple].add(self)
 
     def define_cameras_render_cache(self):
 
@@ -153,18 +172,22 @@ class Sprite:
 
             render_position = todo_camera.get_render_position(self.position)
 
-            if todo_camera.is_renderable(render_position):
+            if todo_camera.is_renderable(self.position):
 
                 # if can be rendered
                 # update key
-                if todo_camera.row_render_dict.get(render_position["y"]) == None:
+                if todo_camera.row_render_dict.get(render_position["y"]) is None:
                     todo_camera.row_render_dict[render_position["y"]] = {}
 
-                if todo_camera.row_render_dict[render_position["y"]].get(render_position["x"]) == None:
+                if todo_camera.row_render_dict[render_position["y"]].get(render_position["x"]) is None:
                     todo_camera.row_render_dict[render_position["y"]][render_position["x"]] = []
 
-                row = todo_camera.row_render_dict[render_position["y"]]
-                row[render_position["x"]].append(self)
+                    row = todo_camera.row_render_dict[render_position["y"]]
+                    row[render_position["x"]].append(self)
+                else:
+
+                    todo_camera.append_sprite_at_order_layer(render_position, self)
+
                 todo_camera.last_sprite_cache_dict[self] = {"y": render_position["y"], "x": render_position["x"]}
 
     def update_all_cameras_render_cache(self):
@@ -176,17 +199,14 @@ class Sprite:
 
         render_position = camera.get_render_position(self.position)
 
-        if camera.is_renderable(render_position):
+        if camera.is_renderable(self.position):
 
             # remove sprite reference
             # to update reference
             # only if was rendered before
             if camera.last_sprite_cache_dict.get(self) != None:
 
-                # print(todo_camera.row_render_dict)
                 sprite_path = camera.last_sprite_cache_dict[self]
-
-                # print(sprite_path, self.name)
 
                 sprite_row_list = camera.row_render_dict[sprite_path["y"]][sprite_path["x"]]
                 sprite_row_list.remove(self)
@@ -212,7 +232,7 @@ class Sprite:
 
 
 
-        elif camera.last_sprite_cache_dict.get(self) != None:
+        elif not camera.last_sprite_cache_dict.get(self) is None:
 
             # if was rendered before and cannot be rendered remove it from row render dict
             row = camera.last_sprite_cache_dict[self]["y"]
@@ -268,6 +288,18 @@ class Sprite:
 
         del self
 
+    def set_layer(self, new_layer: int):
+
+        self.layer = new_layer
+
+        for camera in self.canvas_owner.camera_tree:
+
+            if camera.is_renderable(self.position):
+                render_position = camera.get_render_position(self.position)
+                camera.row_render_dict[render_position["y"]][render_position["x"]].remove(self)
+                camera.append_sprite_at_order_layer(render_position, self)
+                self.update_camera_render_cache(camera)
+
     def rename(self, new_name: str):
         """
         allows to change the name of a sprite, to "rename" it.
@@ -286,70 +318,50 @@ class Sprite:
         self.name = new_name
         self.canvas_owner.sprite_names_dict[new_name] = self
 
-    def get_colliding_objects(self):
+    def get_colliding_objects(self, at_pos=None):
         """
-        Returns a list of colliding objects(by name)
+        Returns a list of colliding objects(by ref)
         """
 
-        object_colliding = []
+        if at_pos is None:
+            at_pos = self.position
 
-        sprite_check_list = list(
-            self.canvas_owner.sprite_position_dict.copy().keys())
-        position_check_list = list(
-            self.canvas_owner.sprite_position_dict.copy().values())
+        collision_set = self.canvas_owner.position_dict.get((at_pos["x"], at_pos["y"]))
+        if collision_set is None:
+            return set()
+        else:
+            collision_set = collision_set.copy()
 
-        sprite_check_list.remove(self)
-        position_check_list.remove(self.position)
+        if at_pos is None:
+            collision_set.remove(self)
 
-        for todo_sprite in sprite_check_list:
+        return collision_set
 
-            POSITION_CHECK = self.canvas_owner.sprite_position_dict[
-                todo_sprite]  # gets the position from key
-
-            if self.position in position_check_list:
-
-                object_colliding.append(
-                    todo_sprite.name) if POSITION_CHECK == self.position else None
-            else:
-                break
-
-        return object_colliding
-
-    def get_colliding_groups(self):
+    def get_colliding_groups(self, at_pos=None):
         """
         Returns a list of colliding objects(by groups)
         """
 
-        groups_colliding = []
+        if at_pos is None:
+            at_pos = self.position
 
-        sprite_check_list = list(
-            self.canvas_owner.sprite_position_dict.copy().keys())
-        position_check_list = list(
-            self.canvas_owner.sprite_position_dict.copy().values())
+        groups = set()
+        colliding_objects = self.get_colliding_objects(at_pos)
 
-        sprite_check_list.remove(self)
-        position_check_list.remove(self.position)
+        for c in colliding_objects:
+            if not c.group is None:
+                groups.add(c.group)
 
-        for todo_sprite in sprite_check_list:
-
-            POSITION_CHECK = self.canvas_owner.sprite_position_dict[
-                todo_sprite]  # gets the position from key
-
-            if self.position in position_check_list and not (set(
-                    self.canvas_owner.group_tree) == set(groups_colliding)):
-
-                groups_colliding.append(
-                    todo_sprite.group) if POSITION_CHECK == self.position else None
-            else:
+            if groups == self.canvas_owner.group_tree:
                 break
 
-        return groups_colliding
+        return groups
 
     def change_x(self, value: int):
         """
         adds "value" to the y-axis of "position"
         """
-
+        self.update_position({"x": self.position["x"] + value, "y": self.position["y"]})
         self.position["x"] += value
         self.update_all_cameras_render_cache()
 
@@ -357,7 +369,7 @@ class Sprite:
         """
         adds "value" to the y-axis of "position"
         """
-
+        self.update_position({"x": self.position["x"], "y": self.position["y"] + value})
         self.position["y"] += value
         self.update_all_cameras_render_cache()
 
@@ -365,7 +377,7 @@ class Sprite:
         """
         sets "value" to the x-axis of "position"
         """
-
+        self.update_position({"x": value, "y": self.position["y"]})
         self.position["x"] = value
         self.update_all_cameras_render_cache()
 
@@ -373,29 +385,32 @@ class Sprite:
         """
         sets "value" to the y-axis of "position"
         """
+        self.update_position({"x": self.position["x"], "y": value})
         self.position["y"] = value
         self.update_all_cameras_render_cache()
 
     def set_position(self, value: dict):
 
+
+        print(value, "update set")
+
+        self.update_position(value)
         self.position = value
         self.update_all_cameras_render_cache()
 
     def change_position(self, x_val: int = 0, y_val: int = 0):
+
+        self.update_position({"x": self.position["x"] + x_val, "y": self.position["y"] + y_val})
 
         self.position["x"] += x_val
         self.position["y"] += y_val
         self.update_all_cameras_render_cache()
 
 
-
-
 class Camera:
     """
     Object that can render a part of a canvas at a given position with a given size using " render() "
     """
-
-
 
     __slots__ = "canvas_owner", "size", "position", "name", "last_sprite_cache_dict", "row_render_dict",
 
@@ -443,33 +458,31 @@ class Camera:
                     # if there are other sprites append the sprite in correct order
                     self.append_sprite_at_order_layer(render_postion, sprite)
 
-
     def get_render_position(self, sprite_position):
 
-        return {"x": sprite_position["x"] + self.position["x"], "y": sprite_position["y"] - self.position["y"]}
-
+        return {"x": sprite_position["x"] + self.position["x"], "y": sprite_position["y"] + self.position["y"]}
 
     def is_renderable(self, position):
 
-        return position["x"] >= 0 and position["x"] < self.size["x"] and position[
-            "y"] >= 0 and position["y"] < self.size["y"]
+        render_position = self.get_render_position(position)
 
+        return render_position["x"] >= 0 and render_position["x"] < self.size["x"] and render_position[
+            "y"] >= 0 and render_position["y"] < self.size["y"]
 
-    def append_sprite_at_order_layer(self, position : dict, sprite : object):
+    def append_sprite_at_order_layer(self, position: dict, sprite: object):
         index = 0
 
         render_list = self.row_render_dict[position["y"]][position["x"]]
 
         for rl in render_list:
+
             if sprite.layer > rl.layer:
                 self.row_render_dict[position["y"]][position["x"]].insert(index, sprite)
                 return
             index += 1
 
         # if None of Sprites had smaller layer insert it at last position
-        render_list.insert(-1, sprite)
-
-
+        render_list.append(sprite)
 
     def render(self, is_string=True):
         """
@@ -698,8 +711,10 @@ class StructureSprite(Sprite):
         self.structure_owner.structure_sprite_tree.add(self)
 
     def get_render_position(self, camera):
-        return {"x": self.position["x"] + camera.position["x"] + self.structure_owner.position["x"],
-                "y": self.position["y"] + camera.position["y"] + self.structure_owner.position["y"]}
+        return {
+          "x": self.position["x"] + camera.position["x"] + self.structure_owner.position["x"],
+          "y": self.position["y"] + camera.position["y"] + self.structure_owner.position["y"]
+        }
 
 
 def critic_test(size, amount, time_mid, is_print=True):
@@ -737,6 +752,5 @@ def critic_test(size, amount, time_mid, is_print=True):
         mid_collision_time = sum(mid_collision_time) / len(mid_collision_time)
         print(f"{mid_fps} FPS")
         print(f"collision time {mid_collision_time / 100000000}")
-
 
 
