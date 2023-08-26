@@ -31,7 +31,6 @@ _Games like **[Connect-4](https://github.com/menitoon/Connect-4-with-Oz-Engine),
 * Camera Support 
 * Custom Sprite Type 
 * Flexible Render Target
-* Structure Support (images made of multiple characters)
 
 (You can either play in the **console** or on a **matrix-led screen**) 
 ![](https://cdn.discordapp.com/attachments/958679110316617748/1079378617328468119/2explanation.png)
