@@ -43,7 +43,7 @@ In **CommandLine** type this:
  
  Then **import** it at the top of your project like so:
  ```python 
- import Oz_Engine as oz 
+ import oz_engine as oz 
  ```
 
 
